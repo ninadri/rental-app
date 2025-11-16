@@ -33,6 +33,11 @@ export const getAllMaintenanceRequests = async (
   res: Response
 ) => {
   try {
+    // Only allow admins
+    if (req.user?.role !== "admin") {
+      return res.status(403).json({ message: "Admins only" });
+    }
+
     const requests = await MaintenanceRequest.find().populate("user", "name");
     res.status(200).json(requests);
   } catch (error) {
