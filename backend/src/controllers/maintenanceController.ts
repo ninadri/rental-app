@@ -55,3 +55,14 @@ export const getSingleMaintenanceRequest = async (
     res.status(500).json({ message: "Error fetching request", error });
   }
 };
+
+export const getTenantRequests = async (req: AuthRequest, res: Response) => {
+  try {
+    const requests = await MaintenanceRequest.find({
+      user: req.user!._id,
+    }).sort({ createdAt: -1 });
+    res.status(200).json(requests);
+  } catch (error) {
+    res.status(500).json({ message: "Error getting your requests" });
+  }
+};

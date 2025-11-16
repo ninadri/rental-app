@@ -3,6 +3,7 @@ import {
   createMaintenanceRequest,
   getAllMaintenanceRequests,
   getSingleMaintenanceRequest,
+  getTenantRequests,
 } from "../controllers/maintenanceController";
 import { protect } from "../middleware/authMiddleware";
 
@@ -13,6 +14,9 @@ router.post("/", protect, createMaintenanceRequest);
 
 // Admin views all
 router.get("/all", protect, getAllMaintenanceRequests);
+
+// Tenant views their requests
+router.get("/my", protect, getTenantRequests);
 
 // View single request
 router.get("/:id", protect, getSingleMaintenanceRequest);
