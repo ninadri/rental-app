@@ -5,7 +5,6 @@ import authRoutes from "./routes/authRoutes";
 import testRoutes from "./routes/testRoutes";
 import protectedRoutes from "./routes/protectedRoutes";
 import maintenanceRoutes from "./routes/maintenanceRoutes";
-import announcementRoutes from "./routes/announcementRoutes";
 
 dotenv.config();
 connectDB();
@@ -18,7 +17,6 @@ app.use("/api/auth", authRoutes);
 app.use("/api/test", testRoutes);
 app.use("/api/protected", protectedRoutes);
 app.use("/api/maintenance", maintenanceRoutes);
-app.use("/api/announcements", announcementRoutes);
 
 const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
