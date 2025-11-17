@@ -4,9 +4,8 @@ import {
   getAllMaintenanceRequests,
   getSingleMaintenanceRequest,
   getTenantRequests,
-  updateRequestStatus,
 } from "../controllers/maintenanceController";
-import { protect, adminOnly } from "../middleware/authMiddleware";
+import { protect } from "../middleware/authMiddleware";
 
 const router = express.Router();
 
@@ -14,13 +13,10 @@ const router = express.Router();
 router.post("/", protect, createMaintenanceRequest);
 
 // Admin views all
-router.get("/all", protect, adminOnly, getAllMaintenanceRequests);
+router.get("/all", protect, getAllMaintenanceRequests);
 
 // Tenant views their requests
 router.get("/my", protect, getTenantRequests);
-
-// Admin updates request status
-router.put("/:id/status", protect, adminOnly, updateRequestStatus);
 
 // View single request
 router.get("/:id", protect, getSingleMaintenanceRequest);
