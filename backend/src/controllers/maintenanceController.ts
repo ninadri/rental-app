@@ -71,32 +71,3 @@ export const getTenantRequests = async (req: AuthRequest, res: Response) => {
     res.status(500).json({ message: "Error getting your requests" });
   }
 };
-
-export const updateRequestStatus = async (req: AuthRequest, res: Response) => {
-  try {
-    const { id } = req.params;
-    const { status } = req.body;
-
-    // Must be admin
-    if (req.user?.role !== "admin") {
-      return res.status(403).json({ message: "Admins only" });
-    }
-
-    const validStatuses = ["pending", "in-progress", "completed"];
-    if (!validStatuses.includes(status)) {
-      return res.status(400).json({ message: "Invalid status option" });
-    }
-
-    const request = await MaintenanceRequest.findById(id);
-    if (!request) {
-      return res.status(404).json({ message: "Request not found" });
-    }
-
-    request.status = status;
-    await request.save();
-
-    res.status(200).json({ message: "Status updated", request });
-  } catch (error) {
-    res.status(500).json({ message: "Error updating status", error });
-  }
-};
