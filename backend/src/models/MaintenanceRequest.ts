@@ -4,7 +4,7 @@ export interface IMaintenanceRequest extends Document {
   user: mongoose.Types.ObjectId;
   title: string;
   description: string;
-  status: "pending" | "in-progress" | "completed";
+  status: "pending" | "in-progress" | "completed" | "closed";
 }
 
 const maintenanceSchema = new Schema<IMaintenanceRequest>(
@@ -14,7 +14,7 @@ const maintenanceSchema = new Schema<IMaintenanceRequest>(
     description: { type: String, required: true },
     status: {
       type: String,
-      enum: ["pending", "in-progress", "completed"],
+      enum: ["pending", "in-progress", "completed", "closed"],
       default: "pending",
     },
   },

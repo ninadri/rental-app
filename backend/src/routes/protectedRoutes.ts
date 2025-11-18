@@ -1,6 +1,5 @@
 import express from "express";
-import { protect } from "../middleware/authMiddleware";
-import { admin } from "../middleware/adminMiddleware";
+import { protect, adminOnly } from "../middleware/authMiddleware";
 
 const router = express.Router();
 
@@ -10,7 +9,7 @@ router.get("/private", protect, (req, res) => {
 });
 
 // admin only
-router.get("/admin-area", protect, admin, (req, res) => {
+router.get("/admin-area", protect, adminOnly, (req, res) => {
   res.json({ message: "Admin zone only" });
 });
 
