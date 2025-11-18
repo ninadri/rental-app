@@ -5,6 +5,7 @@ import {
   getSingleMaintenanceRequest,
   getTenantRequests,
   updateRequestStatus,
+  closeRequest,
 } from "../controllers/maintenanceController";
 import { protect, adminOnly } from "../middleware/authMiddleware";
 
@@ -21,6 +22,9 @@ router.get("/my", protect, getTenantRequests);
 
 // Admin updates request status
 router.put("/:id/status", protect, adminOnly, updateRequestStatus);
+
+// Admin closes a request
+router.put("/:id/close", protect, adminOnly, closeRequest);
 
 // View single request
 router.get("/:id", protect, getSingleMaintenanceRequest);

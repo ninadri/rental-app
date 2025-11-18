@@ -100,3 +100,28 @@ export const updateRequestStatus = async (req: AuthRequest, res: Response) => {
     res.status(500).json({ message: "Error updating status", error });
   }
 };
+export const closeRequest = async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    const request = await MaintenanceRequest.findById(id);
+
+    if (!request) {
+      return res.status(404).json({ message: "Request not found" });
+    }
+
+    // Set status to closed
+    request.status = "closed";
+    await request.save();
+
+    res.status(200).json({
+      message: "Request closed",
+      request,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Error closing request",
+      error,
+    });
+  }
+};
