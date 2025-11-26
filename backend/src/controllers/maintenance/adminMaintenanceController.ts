@@ -109,3 +109,25 @@ export const getSingleMaintenanceRequest = async (
     res.status(500).json({ message: "Error fetching request", error });
   }
 };
+
+// Admin gets all closed requests
+export const getClosedMaintenanceRequests = async (
+  _req: AuthRequest,
+  res: Response
+) => {
+  try {
+    const requests = await MaintenanceRequest.find({
+      status: "closed",
+    })
+      .populate("user", "name email")
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({
+      message: "Closed maintenance requests fetched successfully",
+      count: requests.length,
+      requests,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching closed requests" });
+  }
+};
