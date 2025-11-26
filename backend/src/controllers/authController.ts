@@ -2,8 +2,8 @@ import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import User from "../models/User";
 
-const generateToken = (id: string) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET as string, {
+const generateToken = (id: string, role: string) => {
+  return jwt.sign({ id, role }, process.env.JWT_SECRET as string, {
     expiresIn: "30d",
   });
 };
@@ -27,7 +27,7 @@ export const registerUser = async (req: Request, res: Response) => {
       name: user.name,
       email: user.email,
       role: user.role,
-      token: generateToken(user._id.toString()),
+      token: generateToken(user._id.toString(), user.role),
     });
   } catch (error) {
     res.status(500).json({ message: "Server error", error });
@@ -50,7 +50,7 @@ export const loginUser = async (req: Request, res: Response) => {
       name: user.name,
       email: user.email,
       role: user.role,
-      token: generateToken(user._id.toString()),
+      token: generateToken(user._id.toString(), user.role),
     });
   } catch (error) {
     res.status(500).json({ message: "Server error", error });

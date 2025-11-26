@@ -3,7 +3,12 @@ import { Request, Response, NextFunction } from "express";
 import User, { IUser } from "../models/User";
 
 export interface AuthRequest extends Request {
-  user?: IUser;
+  user?: {
+    _id: string;
+    name?: string;
+    email?: string;
+    role: "tenant" | "admin";
+  };
 }
 
 export const protect = async (
