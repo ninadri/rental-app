@@ -12,6 +12,7 @@ export interface IMaintenanceRequest extends Document {
   description: string;
   status: "pending" | "in-progress" | "completed" | "closed";
   adminNotes: IAdminNote[];
+  images: string[];
 }
 
 const AdminNoteSchema = new Schema<IAdminNote>(
@@ -34,6 +35,10 @@ const maintenanceSchema = new Schema<IMaintenanceRequest>(
       default: "pending",
     },
     adminNotes: [AdminNoteSchema],
+    images: {
+      type: [String],
+      default: [],
+    },
   },
   { timestamps: true }
 );
