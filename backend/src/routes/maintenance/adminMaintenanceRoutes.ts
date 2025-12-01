@@ -6,6 +6,7 @@ import {
   closeRequest,
   getOpenMaintenanceRequests,
   getClosedMaintenanceRequests,
+  addAdminNote,
 } from "../../controllers/maintenance/adminMaintenanceController";
 import { protect, adminOnly } from "../../middleware/authMiddleware";
 
@@ -28,6 +29,9 @@ router.put("/:id/status", updateRequestStatus);
 
 // Admin closes a request
 router.put("/:id/close", closeRequest);
+
+// Admin adds a note to a request
+router.post("/:id/notes", addAdminNote);
 
 // View single request
 router.get("/:id", getSingleMaintenanceRequest);

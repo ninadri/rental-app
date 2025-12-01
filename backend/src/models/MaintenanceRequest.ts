@@ -1,11 +1,27 @@
 import mongoose, { Schema, Document } from "mongoose";
 
+export interface IAdminNote {
+  admin: mongoose.Types.ObjectId;
+  note: string;
+  createdAt: Date;
+}
+
 export interface IMaintenanceRequest extends Document {
   user: mongoose.Types.ObjectId;
   title: string;
   description: string;
   status: "pending" | "in-progress" | "completed" | "closed";
+  adminNotes: IAdminNote[];
 }
+
+const AdminNoteSchema = new Schema<IAdminNote>(
+  {
+    admin: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    note: { type: String, required: true },
+    createdAt: { type: Date, default: Date.now },
+  },
+  { _id: true }
+);
 
 const maintenanceSchema = new Schema<IMaintenanceRequest>(
   {
@@ -17,6 +33,7 @@ const maintenanceSchema = new Schema<IMaintenanceRequest>(
       enum: ["pending", "in-progress", "completed", "closed"],
       default: "pending",
     },
+    adminNotes: [AdminNoteSchema],
   },
   { timestamps: true }
 );

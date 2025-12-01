@@ -131,3 +131,35 @@ export const getClosedMaintenanceRequests = async (
     res.status(500).json({ message: "Error fetching closed requests" });
   }
 };
+
+// Admin adds a note to a maintenance request
+export const addAdminNote = async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { note } = req.body;
+
+    if (!note) {
+      return res.status(400).json({ message: "Note is required" });
+    }
+
+    const request = await MaintenanceRequest.findById(id);
+    if (!request) {
+      return res.status(404).json({ message: "Request not found" });
+    }
+
+    request.adminNotes.push({
+      admin: req.user!._id,
+      note,
+      createdAt: new Date(),
+    });
+
+    await request.save();
+
+    res.status(200).json({
+      message: "Admin note added",
+      request,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Error adding note", error });
+  }
+};
