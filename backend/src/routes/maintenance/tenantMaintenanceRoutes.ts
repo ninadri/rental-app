@@ -3,6 +3,7 @@ import { protect } from "../../middleware/authMiddleware";
 import {
   createMaintenanceRequest,
   getTenantRequests,
+  addImagesToMaintenanceRequest,
 } from "../../controllers/maintenance/tenantMaintenanceController";
 
 const router = express.Router();
@@ -14,5 +15,9 @@ router.post("/", createMaintenanceRequest);
 
 // Tenant views their requests
 router.get("/", getTenantRequests);
+
+// Tenant adds images to a request
+router.patch("/:id/images", addImagesToMaintenanceRequest);
+console.log("TENANT ROUTES LOADED");
 
 export default router;
