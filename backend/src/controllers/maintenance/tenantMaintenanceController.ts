@@ -32,13 +32,24 @@ export const createMaintenanceRequest = async (
 // Tenant views their requests
 export const getTenantRequests = async (req: AuthRequest, res: Response) => {
   try {
-    const requests = await MaintenanceRequest.find({
-      user: req.user!._id,
-    }).sort({ createdAt: -1 });
+    const { status } = req.query;
+    const filter: any = { user: req.user!._id };
 
-    res.status(200).json(requests);
+    // If status exists, add it to the filter
+    if (status) {
+      filter.status = status;
+    }
+
+    const requests = await MaintenanceRequest.find(filter).sort({
+      createdAt: -1,
+    });
+
+    res.status(200).json({
+      count: requests.length,
+      requests,
+    });
   } catch (error) {
-    res.status(500).json({ message: "Error getting your requests" });
+    res.status(500).json({ message: "Error fetching maintenance requests" });
   }
 };
 
