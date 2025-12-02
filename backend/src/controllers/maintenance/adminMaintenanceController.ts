@@ -1,6 +1,7 @@
 import { Response } from "express";
 import MaintenanceRequest from "../../models/MaintenanceRequest";
 import { AuthRequest } from "../../middleware/authMiddleware";
+import { getPagination } from "../../utils/paginate";
 
 // Get all open maintenance requests
 export const getOpenMaintenanceRequests = async (
@@ -9,6 +10,7 @@ export const getOpenMaintenanceRequests = async (
 ) => {
   try {
     const { sort } = _req.query as { sort?: "asc" | "desc" };
+    const { page, limit, skip } = getPagination(_req.query);
 
     // Determine sorting order
     let sortDirection: 1 | -1 = -1; // newest → oldest (default)
@@ -16,15 +18,21 @@ export const getOpenMaintenanceRequests = async (
 
     const openStatuses = ["pending", "in-progress"];
 
-    const requests = await MaintenanceRequest.find({
-      status: { $in: openStatuses },
-    })
+    const filter = { status: { $in: openStatuses } };
+
+    const totalRequests = await MaintenanceRequest.countDocuments(filter);
+
+    const requests = await MaintenanceRequest.find(filter)
       .populate("user", "name email")
-      .sort({ createdAt: sortDirection });
+      .sort({ createdAt: sortDirection })
+      .skip(skip)
+      .limit(limit);
 
     res.status(200).json({
-      message: "Open maintenance requests fetched successfully",
-      count: requests.length,
+      page,
+      limit,
+      totalRequests,
+      totalPages: Math.ceil(totalRequests / limit),
       requests,
     });
   } catch (error) {
@@ -39,21 +47,30 @@ export const getAllMaintenanceRequests = async (
 ) => {
   try {
     const { sort } = _req.query as { sort?: "asc" | "desc" };
+    const { page, limit, skip } = getPagination(_req.query);
 
     // Determine sorting order
     let sortDirection: 1 | -1 = -1; // default: newest first
     if (sort === "asc") sortDirection = 1;
+    const totalRequests = await MaintenanceRequest.countDocuments();
 
     const requests = await MaintenanceRequest.find()
       .populate("user", "name email")
-      .sort({ createdAt: sortDirection });
+      .sort({ createdAt: sortDirection })
+      .skip(skip)
+      .limit(limit);
 
-    res.status(200).json(requests);
+    res.status(200).json({
+      page,
+      limit,
+      totalRequests,
+      totalPages: Math.ceil(totalRequests / limit),
+      requests,
+    });
   } catch (error) {
     res.status(500).json({ message: "Error fetching requests", error });
   }
 };
-
 // Admin updates maintenance request status
 export const updateRequestStatus = async (req: AuthRequest, res: Response) => {
   try {
@@ -129,15 +146,27 @@ export const getClosedMaintenanceRequests = async (
   res: Response
 ) => {
   try {
-    const requests = await MaintenanceRequest.find({
-      status: "closed",
-    })
+    const { sort } = _req.query as { sort?: "asc" | "desc" };
+    const { page, limit, skip } = getPagination(_req.query);
+
+    let sortDirection: 1 | -1 = -1;
+    if (sort === "asc") sortDirection = 1;
+
+    const filter = { status: "closed" };
+
+    const totalRequests = await MaintenanceRequest.countDocuments(filter);
+
+    const requests = await MaintenanceRequest.find(filter)
       .populate("user", "name email")
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: sortDirection })
+      .skip(skip)
+      .limit(limit);
 
     res.status(200).json({
-      message: "Closed maintenance requests fetched successfully",
-      count: requests.length,
+      page,
+      limit,
+      totalRequests,
+      totalPages: Math.ceil(totalRequests / limit),
       requests,
     });
   } catch (error) {
