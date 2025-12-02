@@ -5,24 +5,27 @@ import { getPagination } from "../../utils/paginate";
 
 // Get all open maintenance requests
 export const getOpenMaintenanceRequests = async (
-  _req: AuthRequest,
+  req: AuthRequest,
   res: Response
 ) => {
   try {
-    const { sort } = _req.query as { sort?: "asc" | "desc" };
-    const { page, limit, skip } = getPagination(_req.query);
+    const { sort, urgency } = req.query as {
+      sort?: "asc" | "desc";
+      urgency?: string;
+    };
+    const { page, limit, skip } = getPagination(req.query);
 
-    // Determine sorting order
-    let sortDirection: 1 | -1 = -1; // newest → oldest (default)
+    let sortDirection: 1 | -1 = -1;
     if (sort === "asc") sortDirection = 1;
 
     const openStatuses = ["pending", "in-progress"];
 
-    const filter = { status: { $in: openStatuses } };
+    const filter: any = { status: { $in: openStatuses } };
+    if (urgency) filter.urgency = urgency;
 
     const totalRequests = await MaintenanceRequest.countDocuments(filter);
 
-    const requests = await MaintenanceRequest.find(filter)
+    const results = await MaintenanceRequest.find(filter)
       .populate("user", "name email")
       .sort({ createdAt: sortDirection })
       .skip(skip)
@@ -33,10 +36,78 @@ export const getOpenMaintenanceRequests = async (
       limit,
       totalRequests,
       totalPages: Math.ceil(totalRequests / limit),
-      requests,
+
+      requests: results.map((r) => {
+        const obj = r.toObject();
+        return {
+          _id: obj._id,
+          title: obj.title,
+          description: obj.description,
+          urgency: obj.urgency,
+          status: obj.status,
+          images: obj.images,
+          adminNotes: obj.adminNotes,
+          user: obj.user,
+          createdAt: obj.createdAt,
+          updatedAt: obj.updatedAt,
+        };
+      }),
     });
   } catch (error) {
     res.status(500).json({ message: "Error fetching open requests" });
+  }
+};
+
+// Admin gets all closed requests
+export const getClosedMaintenanceRequests = async (
+  req: AuthRequest,
+  res: Response
+) => {
+  try {
+    const { sort, urgency } = req.query as {
+      sort?: "asc" | "desc";
+      urgency?: string;
+    };
+    const { page, limit, skip } = getPagination(req.query);
+
+    let sortDirection: 1 | -1 = -1;
+    if (sort === "asc") sortDirection = 1;
+
+    const filter: any = { status: "closed" };
+    if (urgency) filter.urgency = urgency;
+
+    const totalRequests = await MaintenanceRequest.countDocuments(filter);
+
+    const results = await MaintenanceRequest.find(filter)
+      .populate("user", "name email")
+      .sort({ createdAt: sortDirection })
+      .skip(skip)
+      .limit(limit);
+
+    res.status(200).json({
+      page,
+      limit,
+      totalRequests,
+      totalPages: Math.ceil(totalRequests / limit),
+
+      requests: results.map((r) => {
+        const obj = r.toObject();
+        return {
+          _id: obj._id,
+          title: obj.title,
+          description: obj.description,
+          urgency: obj.urgency,
+          status: obj.status,
+          images: obj.images,
+          adminNotes: obj.adminNotes,
+          user: obj.user,
+          createdAt: obj.createdAt,
+          updatedAt: obj.updatedAt,
+        };
+      }),
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching closed requests" });
   }
 };
 
@@ -46,15 +117,21 @@ export const getAllMaintenanceRequests = async (
   res: Response
 ) => {
   try {
-    const { sort } = _req.query as { sort?: "asc" | "desc" };
+    const { sort, urgency } = _req.query as {
+      sort?: "asc" | "desc";
+      urgency?: string;
+    };
     const { page, limit, skip } = getPagination(_req.query);
 
-    // Determine sorting order
-    let sortDirection: 1 | -1 = -1; // default: newest first
+    let sortDirection: 1 | -1 = -1;
     if (sort === "asc") sortDirection = 1;
+
+    const filter: any = {};
+    if (urgency) filter.urgency = urgency;
+
     const totalRequests = await MaintenanceRequest.countDocuments();
 
-    const requests = await MaintenanceRequest.find()
+    const results = await MaintenanceRequest.find(filter)
       .populate("user", "name email")
       .sort({ createdAt: sortDirection })
       .skip(skip)
@@ -65,12 +142,28 @@ export const getAllMaintenanceRequests = async (
       limit,
       totalRequests,
       totalPages: Math.ceil(totalRequests / limit),
-      requests,
+
+      requests: results.map((r) => {
+        const obj = r.toObject();
+        return {
+          _id: obj._id,
+          title: obj.title,
+          description: obj.description,
+          urgency: obj.urgency,
+          status: obj.status,
+          images: obj.images,
+          adminNotes: obj.adminNotes,
+          user: obj.user,
+          createdAt: obj.createdAt,
+          updatedAt: obj.updatedAt,
+        };
+      }),
     });
   } catch (error) {
     res.status(500).json({ message: "Error fetching requests", error });
   }
 };
+
 // Admin updates maintenance request status
 export const updateRequestStatus = async (req: AuthRequest, res: Response) => {
   try {
@@ -137,40 +230,6 @@ export const getSingleMaintenanceRequest = async (
     res.status(200).json(request);
   } catch (error) {
     res.status(500).json({ message: "Error fetching request", error });
-  }
-};
-
-// Admin gets all closed requests
-export const getClosedMaintenanceRequests = async (
-  _req: AuthRequest,
-  res: Response
-) => {
-  try {
-    const { sort } = _req.query as { sort?: "asc" | "desc" };
-    const { page, limit, skip } = getPagination(_req.query);
-
-    let sortDirection: 1 | -1 = -1;
-    if (sort === "asc") sortDirection = 1;
-
-    const filter = { status: "closed" };
-
-    const totalRequests = await MaintenanceRequest.countDocuments(filter);
-
-    const requests = await MaintenanceRequest.find(filter)
-      .populate("user", "name email")
-      .sort({ createdAt: sortDirection })
-      .skip(skip)
-      .limit(limit);
-
-    res.status(200).json({
-      page,
-      limit,
-      totalRequests,
-      totalPages: Math.ceil(totalRequests / limit),
-      requests,
-    });
-  } catch (error) {
-    res.status(500).json({ message: "Error fetching closed requests" });
   }
 };
 
