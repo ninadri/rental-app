@@ -32,16 +32,25 @@ export const createMaintenanceRequest = async (
 // Tenant views their requests
 export const getTenantRequests = async (req: AuthRequest, res: Response) => {
   try {
-    const { status } = req.query;
+    const { status, sort } = req.query as {
+      status?: string;
+      sort?: "asc" | "desc";
+    };
     const filter: any = { user: req.user!._id };
-
     // If status exists, add it to the filter
     if (status) {
       filter.status = status;
     }
 
+    let sortDirection: 1 | -1 = -1;
+
+    // If ?sort=asc, then oldest → newest
+    if (sort === "asc") {
+      sortDirection = 1;
+    }
+
     const requests = await MaintenanceRequest.find(filter).sort({
-      createdAt: -1,
+      createdAt: sortDirection,
     });
 
     res.status(200).json({
