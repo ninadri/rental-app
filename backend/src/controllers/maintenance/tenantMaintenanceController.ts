@@ -8,7 +8,7 @@ export const createMaintenanceRequest = async (
   res: Response
 ) => {
   try {
-    const { title, description } = req.body;
+    const { title, description, urgency } = req.body;
 
     if (!title || !description) {
       return res
@@ -16,10 +16,18 @@ export const createMaintenanceRequest = async (
         .json({ message: "Title and description are required" });
     }
 
+    const validUrgency = ["low", "medium", "high"];
+    if (!urgency || !validUrgency.includes(urgency)) {
+      return res.status(400).json({
+        message: "Urgency is required and must be one of: low, medium, high",
+      });
+    }
+
     const request = await MaintenanceRequest.create({
       user: req.user!._id,
       title,
       description,
+      urgency,
       status: "pending",
     });
 
