@@ -8,13 +8,19 @@ export const getOpenMaintenanceRequests = async (
   res: Response
 ) => {
   try {
+    const { sort } = _req.query as { sort?: "asc" | "desc" };
+
+    // Determine sorting order
+    let sortDirection: 1 | -1 = -1; // newest → oldest (default)
+    if (sort === "asc") sortDirection = 1;
+
     const openStatuses = ["pending", "in-progress"];
 
     const requests = await MaintenanceRequest.find({
       status: { $in: openStatuses },
     })
       .populate("user", "name email")
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: sortDirection });
 
     res.status(200).json({
       message: "Open maintenance requests fetched successfully",
@@ -32,9 +38,16 @@ export const getAllMaintenanceRequests = async (
   res: Response
 ) => {
   try {
+    const { sort } = _req.query as { sort?: "asc" | "desc" };
+
+    // Determine sorting order
+    let sortDirection: 1 | -1 = -1; // default: newest first
+    if (sort === "asc") sortDirection = 1;
+
     const requests = await MaintenanceRequest.find()
       .populate("user", "name email")
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: sortDirection });
+
     res.status(200).json(requests);
   } catch (error) {
     res.status(500).json({ message: "Error fetching requests", error });
