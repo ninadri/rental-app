@@ -18,6 +18,5 @@ router.get("/", getTenantRequests);
 
 // Tenant adds images to a request
 router.patch("/:id/images", addImagesToMaintenanceRequest);
-console.log("TENANT ROUTES LOADED");
 
 export default router;
