@@ -1,6 +1,7 @@
 import { Response } from "express";
 import MaintenanceRequest from "../../models/MaintenanceRequest";
 import { AuthRequest } from "../../middleware/authMiddleware";
+import { getPagination } from "../../utils/paginate";
 
 export const createMaintenanceRequest = async (
   req: AuthRequest,
@@ -36,6 +37,9 @@ export const getTenantRequests = async (req: AuthRequest, res: Response) => {
       status?: string;
       sort?: "asc" | "desc";
     };
+
+    const { page, limit, skip } = getPagination(req.query);
+
     const filter: any = { user: req.user!._id };
     // If status exists, add it to the filter
     if (status) {
@@ -48,13 +52,19 @@ export const getTenantRequests = async (req: AuthRequest, res: Response) => {
     if (sort === "asc") {
       sortDirection = 1;
     }
-
-    const requests = await MaintenanceRequest.find(filter).sort({
-      createdAt: sortDirection,
-    });
+    const totalRequests = await MaintenanceRequest.countDocuments(filter);
+    const requests = await MaintenanceRequest.find(filter)
+      .sort({
+        createdAt: sortDirection,
+      })
+      .skip(skip)
+      .limit(limit);
 
     res.status(200).json({
-      count: requests.length,
+      page,
+      limit,
+      totalRequests,
+      totalPages: Math.ceil(totalRequests / limit),
       requests,
     });
   } catch (error) {
