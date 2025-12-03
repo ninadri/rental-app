@@ -9,9 +9,10 @@ export const getOpenMaintenanceRequests = async (
   res: Response
 ) => {
   try {
-    const { sort, urgency } = req.query as {
+    const { sort, urgency, sortUrgency } = req.query as {
       sort?: "asc" | "desc";
       urgency?: string;
+      sortUrgency?: "asc" | "desc";
     };
     const { page, limit, skip } = getPagination(req.query);
 
@@ -30,6 +31,19 @@ export const getOpenMaintenanceRequests = async (
       .sort({ createdAt: sortDirection })
       .skip(skip)
       .limit(limit);
+    if (sortUrgency) {
+      const urgencyValue: Record<string, number> = {
+        low: 1,
+        medium: 2,
+        high: 3,
+      };
+
+      results.sort((a, b) => {
+        const aVal = urgencyValue[a.urgency];
+        const bVal = urgencyValue[b.urgency];
+        return sortUrgency === "asc" ? aVal - bVal : bVal - aVal;
+      });
+    }
 
     res.status(200).json({
       page,
@@ -64,9 +78,10 @@ export const getClosedMaintenanceRequests = async (
   res: Response
 ) => {
   try {
-    const { sort, urgency } = req.query as {
+    const { sort, urgency, sortUrgency } = req.query as {
       sort?: "asc" | "desc";
       urgency?: string;
+      sortUrgency?: "asc" | "desc";
     };
     const { page, limit, skip } = getPagination(req.query);
 
@@ -83,7 +98,19 @@ export const getClosedMaintenanceRequests = async (
       .sort({ createdAt: sortDirection })
       .skip(skip)
       .limit(limit);
+    if (sortUrgency) {
+      const urgencyValue: Record<string, number> = {
+        low: 1,
+        medium: 2,
+        high: 3,
+      };
 
+      results.sort((a, b) => {
+        const aVal = urgencyValue[a.urgency];
+        const bVal = urgencyValue[b.urgency];
+        return sortUrgency === "asc" ? aVal - bVal : bVal - aVal;
+      });
+    }
     res.status(200).json({
       page,
       limit,
@@ -117,9 +144,10 @@ export const getAllMaintenanceRequests = async (
   res: Response
 ) => {
   try {
-    const { sort, urgency } = _req.query as {
+    const { sort, urgency, sortUrgency } = _req.query as {
       sort?: "asc" | "desc";
       urgency?: string;
+      sortUrgency?: "asc" | "desc";
     };
     const { page, limit, skip } = getPagination(_req.query);
 
@@ -129,13 +157,27 @@ export const getAllMaintenanceRequests = async (
     const filter: any = {};
     if (urgency) filter.urgency = urgency;
 
-    const totalRequests = await MaintenanceRequest.countDocuments();
+    const totalRequests = await MaintenanceRequest.countDocuments(filter);
 
     const results = await MaintenanceRequest.find(filter)
       .populate("user", "name email")
       .sort({ createdAt: sortDirection })
       .skip(skip)
       .limit(limit);
+
+    if (sortUrgency) {
+      const urgencyValue: Record<string, number> = {
+        low: 1,
+        medium: 2,
+        high: 3,
+      };
+
+      results.sort((a, b) => {
+        const aVal = urgencyValue[a.urgency];
+        const bVal = urgencyValue[b.urgency];
+        return sortUrgency === "asc" ? aVal - bVal : bVal - aVal;
+      });
+    }
 
     res.status(200).json({
       page,
