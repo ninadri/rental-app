@@ -12,7 +12,18 @@ export interface IMaintenanceRequest extends Document {
   title: string;
   description: string;
   urgency: "low" | "medium" | "high";
-  category: "plumbing" | "electrical" | "hvac" | "appliance" | "general";
+  category:
+    | "hvac"
+    | "kitchen"
+    | "washer-dryer"
+    | "bathroom"
+    | "living-room"
+    | "garage"
+    | "lawn"
+    | "bedroom"
+    | "electrical"
+    | "plumbing"
+    | "general";
   status: "pending" | "in-progress" | "completed" | "closed";
   adminNotes: IAdminNote[];
   images: string[];
@@ -43,7 +54,19 @@ const maintenanceSchema = new Schema<IMaintenanceRequest>(
     },
     category: {
       type: String,
-      enum: ["plumbing", "electrical", "hvac", "appliance", "general"],
+      enum: [
+        "hvac",
+        "kitchen",
+        "washer-dryer",
+        "bathroom",
+        "living-room",
+        "garage",
+        "lawn",
+        "bedroom",
+        "electrical",
+        "plumbing",
+        "general",
+      ],
       default: "general",
     },
     status: {
