@@ -3,17 +3,33 @@ import MaintenanceRequest from "../../models/MaintenanceRequest";
 import { AuthRequest } from "../../middleware/authMiddleware";
 import { getPagination } from "../../utils/paginate";
 
+const validCategories = [
+  "hvac",
+  "kitchen",
+  "washer-dryer",
+  "bathroom",
+  "living-room",
+  "garage",
+  "lawn",
+  "bedroom",
+  "electrical",
+  "plumbing",
+  "general",
+];
+
 // Get all open maintenance requests
 export const getOpenMaintenanceRequests = async (
   req: AuthRequest,
   res: Response
 ) => {
   try {
-    const { sort, urgency, sortUrgency } = req.query as {
+    const { sort, urgency, sortUrgency, category } = req.query as {
       sort?: "asc" | "desc";
       urgency?: string;
       sortUrgency?: "asc" | "desc";
+      category?: string;
     };
+
     const { page, limit, skip } = getPagination(req.query);
 
     let sortDirection: 1 | -1 = -1;
@@ -22,7 +38,12 @@ export const getOpenMaintenanceRequests = async (
     const openStatuses = ["pending", "in-progress"];
 
     const filter: any = { status: { $in: openStatuses } };
+
     if (urgency) filter.urgency = urgency;
+
+    if (category && validCategories.includes(category)) {
+      filter.category = category;
+    }
 
     const totalRequests = await MaintenanceRequest.countDocuments(filter);
 
@@ -31,6 +52,7 @@ export const getOpenMaintenanceRequests = async (
       .sort({ createdAt: sortDirection })
       .skip(skip)
       .limit(limit);
+
     if (sortUrgency) {
       const urgencyValue: Record<string, number> = {
         low: 1,
@@ -50,7 +72,6 @@ export const getOpenMaintenanceRequests = async (
       limit,
       totalRequests,
       totalPages: Math.ceil(totalRequests / limit),
-
       requests: results.map((r) => {
         const obj = r.toObject();
         return {
@@ -58,6 +79,7 @@ export const getOpenMaintenanceRequests = async (
           title: obj.title,
           description: obj.description,
           urgency: obj.urgency,
+          category: obj.category,
           status: obj.status,
           images: obj.images,
           adminNotes: obj.adminNotes,
@@ -78,10 +100,11 @@ export const getClosedMaintenanceRequests = async (
   res: Response
 ) => {
   try {
-    const { sort, urgency, sortUrgency } = req.query as {
+    const { sort, urgency, sortUrgency, category } = req.query as {
       sort?: "asc" | "desc";
       urgency?: string;
       sortUrgency?: "asc" | "desc";
+      category?: string;
     };
     const { page, limit, skip } = getPagination(req.query);
 
@@ -89,7 +112,12 @@ export const getClosedMaintenanceRequests = async (
     if (sort === "asc") sortDirection = 1;
 
     const filter: any = { status: "closed" };
+
     if (urgency) filter.urgency = urgency;
+
+    if (category && validCategories.includes(category)) {
+      filter.category = category;
+    }
 
     const totalRequests = await MaintenanceRequest.countDocuments(filter);
 
@@ -98,6 +126,7 @@ export const getClosedMaintenanceRequests = async (
       .sort({ createdAt: sortDirection })
       .skip(skip)
       .limit(limit);
+
     if (sortUrgency) {
       const urgencyValue: Record<string, number> = {
         low: 1,
@@ -111,6 +140,7 @@ export const getClosedMaintenanceRequests = async (
         return sortUrgency === "asc" ? aVal - bVal : bVal - aVal;
       });
     }
+
     res.status(200).json({
       page,
       limit,
@@ -124,6 +154,7 @@ export const getClosedMaintenanceRequests = async (
           title: obj.title,
           description: obj.description,
           urgency: obj.urgency,
+          category: obj.category,
           status: obj.status,
           images: obj.images,
           adminNotes: obj.adminNotes,
@@ -144,10 +175,11 @@ export const getAllMaintenanceRequests = async (
   res: Response
 ) => {
   try {
-    const { sort, urgency, sortUrgency } = _req.query as {
+    const { sort, urgency, sortUrgency, category } = _req.query as {
       sort?: "asc" | "desc";
       urgency?: string;
       sortUrgency?: "asc" | "desc";
+      category?: string;
     };
     const { page, limit, skip } = getPagination(_req.query);
 
@@ -155,7 +187,12 @@ export const getAllMaintenanceRequests = async (
     if (sort === "asc") sortDirection = 1;
 
     const filter: any = {};
+
     if (urgency) filter.urgency = urgency;
+
+    if (category && validCategories.includes(category)) {
+      filter.category = category;
+    }
 
     const totalRequests = await MaintenanceRequest.countDocuments(filter);
 
@@ -192,6 +229,7 @@ export const getAllMaintenanceRequests = async (
           title: obj.title,
           description: obj.description,
           urgency: obj.urgency,
+          category: obj.category,
           status: obj.status,
           images: obj.images,
           adminNotes: obj.adminNotes,
@@ -347,13 +385,18 @@ export const updateRequestCategory = async (
     const { category } = req.body;
 
     const validCategories = [
-      "plumbing",
-      "electrical",
       "hvac",
-      "appliance",
+      "kitchen",
+      "washer-dryer",
+      "bathroom",
+      "living-room",
+      "garage",
+      "lawn",
+      "bedroom",
+      "electrical",
+      "plumbing",
       "general",
     ];
-
     if (!validCategories.includes(category)) {
       return res.status(400).json({ message: "Invalid category option" });
     }
