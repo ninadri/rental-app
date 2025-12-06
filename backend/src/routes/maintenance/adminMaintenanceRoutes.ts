@@ -7,6 +7,7 @@ import {
   getOpenMaintenanceRequests,
   getClosedMaintenanceRequests,
   addAdminNote,
+  updateRequestUrgency,
 } from "../../controllers/maintenance/adminMaintenanceController";
 import { protect, adminOnly } from "../../middleware/authMiddleware";
 
@@ -23,6 +24,9 @@ router.get("/open", getOpenMaintenanceRequests);
 
 // Admin views all closed requests
 router.get("/closed", getClosedMaintenanceRequests);
+
+// Admin updates urgency
+router.put("/:id/urgency", updateRequestUrgency);
 
 // Admin updates request status
 router.put("/:id/status", updateRequestStatus);

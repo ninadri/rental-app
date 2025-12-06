@@ -1,7 +1,8 @@
 import mongoose, { Schema, Document } from "mongoose";
+import { Types } from "mongoose";
 
 export interface IAdminNote {
-  admin: mongoose.Types.ObjectId;
+  admin: Types.ObjectId | string;
   note: string;
   createdAt: Date;
 }
