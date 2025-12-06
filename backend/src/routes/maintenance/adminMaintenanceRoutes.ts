@@ -8,6 +8,7 @@ import {
   getClosedMaintenanceRequests,
   addAdminNote,
   updateRequestUrgency,
+  updateRequestCategory,
 } from "../../controllers/maintenance/adminMaintenanceController";
 import { protect, adminOnly } from "../../middleware/authMiddleware";
 
@@ -27,6 +28,9 @@ router.get("/closed", getClosedMaintenanceRequests);
 
 // Admin updates urgency
 router.put("/:id/urgency", updateRequestUrgency);
+
+// Admin updates request category
+router.put("/:id/category", updateRequestCategory);
 
 // Admin updates request status
 router.put("/:id/status", updateRequestStatus);

@@ -336,3 +336,41 @@ export const updateRequestUrgency = async (req: AuthRequest, res: Response) => {
     res.status(500).json({ message: "Error updating urgency", error });
   }
 };
+
+// Admin updates maintenance request category
+export const updateRequestCategory = async (
+  req: AuthRequest,
+  res: Response
+) => {
+  try {
+    const { id } = req.params;
+    const { category } = req.body;
+
+    const validCategories = [
+      "plumbing",
+      "electrical",
+      "hvac",
+      "appliance",
+      "general",
+    ];
+
+    if (!validCategories.includes(category)) {
+      return res.status(400).json({ message: "Invalid category option" });
+    }
+
+    const request = await MaintenanceRequest.findById(id);
+    if (!request) {
+      return res.status(404).json({ message: "Request not found" });
+    }
+
+    request.category = category;
+    await request.save();
+
+    res.status(200).json({
+      message: "Category updated successfully",
+      request,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Error updating category", error });
+  }
+};

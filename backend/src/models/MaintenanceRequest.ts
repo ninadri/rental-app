@@ -12,6 +12,7 @@ export interface IMaintenanceRequest extends Document {
   title: string;
   description: string;
   urgency: "low" | "medium" | "high";
+  category: "plumbing" | "electrical" | "hvac" | "appliance" | "general";
   status: "pending" | "in-progress" | "completed" | "closed";
   adminNotes: IAdminNote[];
   images: string[];
@@ -40,7 +41,11 @@ const maintenanceSchema = new Schema<IMaintenanceRequest>(
       required: true,
       default: "low",
     },
-
+    category: {
+      type: String,
+      enum: ["plumbing", "electrical", "hvac", "appliance", "general"],
+      default: "general",
+    },
     status: {
       type: String,
       enum: ["pending", "in-progress", "completed", "closed"],
