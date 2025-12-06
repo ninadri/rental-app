@@ -8,7 +8,7 @@ export const createMaintenanceRequest = async (
   res: Response
 ) => {
   try {
-    const { title, description, urgency } = req.body;
+    const { title, description, urgency, category } = req.body;
 
     if (!title || !description) {
       return res
@@ -22,12 +22,29 @@ export const createMaintenanceRequest = async (
         message: "Urgency is required and must be one of: low, medium, high",
       });
     }
+    const validCategories = [
+      "hvac",
+      "kitchen",
+      "washer-dryer",
+      "bathroom",
+      "living-room",
+      "garage",
+      "lawn",
+      "bedroom",
+      "electrical",
+      "plumbing",
+      "general",
+    ];
 
+    if (category && !validCategories.includes(category)) {
+      return res.status(400).json({ message: "Invalid category option" });
+    }
     const request = await MaintenanceRequest.create({
       user: req.user!._id,
       title,
       description,
       urgency,
+      category: category || "general",
       status: "pending",
     });
 
