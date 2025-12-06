@@ -306,3 +306,33 @@ export const addAdminNote = async (req: AuthRequest, res: Response) => {
     res.status(500).json({ message: "Error adding note", error });
   }
 };
+
+// Admin updates maintenance request urgency
+export const updateRequestUrgency = async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { urgency } = req.body;
+
+    const validUrgencies = ["low", "medium", "high"];
+
+    if (!validUrgencies.includes(urgency)) {
+      return res.status(400).json({ message: "Invalid urgency value" });
+    }
+
+    const request = await MaintenanceRequest.findById(id);
+
+    if (!request) {
+      return res.status(404).json({ message: "Request not found" });
+    }
+
+    request.urgency = urgency;
+    await request.save();
+
+    res.status(200).json({
+      message: "Urgency updated successfully",
+      request,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Error updating urgency", error });
+  }
+};
