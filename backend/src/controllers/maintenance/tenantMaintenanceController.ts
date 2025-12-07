@@ -2,7 +2,55 @@ import { Response } from "express";
 import MaintenanceRequest from "../../models/MaintenanceRequest";
 import { AuthRequest } from "../../middleware/authMiddleware";
 import { getPagination } from "../../utils/paginate";
+import { buildMaintenanceFilter } from "../../utils/buildMaintenanceFilter";
+import { buildSortOptions } from "../../utils/buildSortOptions";
+import { formatRequest } from "../../utils/formatRequest";
 
+// Tenant: Get all their maintenance requests
+export const getTenantRequests = async (req: AuthRequest, res: Response) => {
+  try {
+    const { status, urgency, category, sort } = req.query as {
+      status?: string;
+      urgency?: string;
+      category?: string;
+      sort?: "asc" | "desc";
+    };
+
+    const { page, limit, skip } = getPagination(req.query);
+
+    // Build filters: user + optional filters
+    const filter = buildMaintenanceFilter({
+      user: req.user!._id.toString(),
+      status,
+      urgency,
+      category,
+    });
+
+    // Sorting (default newest → oldest)
+    const sortOptions = buildSortOptions(sort);
+
+    // Query
+    const totalRequests = await MaintenanceRequest.countDocuments(filter);
+
+    const results = await MaintenanceRequest.find(filter)
+      .populate("user", "name email")
+      .sort(sortOptions)
+      .skip(skip)
+      .limit(limit);
+
+    res.status(200).json({
+      page,
+      limit,
+      totalRequests,
+      totalPages: Math.ceil(totalRequests / limit),
+      requests: results.map(formatRequest),
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching tenant requests" });
+  }
+};
+
+// Tenant: Create a maintenance request
 export const createMaintenanceRequest = async (
   req: AuthRequest,
   res: Response
@@ -16,129 +64,54 @@ export const createMaintenanceRequest = async (
         .json({ message: "Title and description are required" });
     }
 
-    const validUrgency = ["low", "medium", "high"];
-    if (!urgency || !validUrgency.includes(urgency)) {
-      return res.status(400).json({
-        message: "Urgency is required and must be one of: low, medium, high",
-      });
-    }
-    const validCategories = [
-      "hvac",
-      "kitchen",
-      "washer-dryer",
-      "bathroom",
-      "living-room",
-      "garage",
-      "lawn",
-      "bedroom",
-      "electrical",
-      "plumbing",
-      "general",
-    ];
-
-    if (category && !validCategories.includes(category)) {
-      return res.status(400).json({ message: "Invalid category option" });
-    }
     const request = await MaintenanceRequest.create({
       user: req.user!._id,
       title,
       description,
       urgency,
-      category: category || "general",
+      category,
       status: "pending",
     });
 
-    res.status(201).json(request);
+    res.status(201).json(formatRequest(request));
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Error creating request", error });
+    res.status(500).json({ message: "Error creating request" });
   }
 };
 
-// Tenant views their requests
-export const getTenantRequests = async (req: AuthRequest, res: Response) => {
-  try {
-    const { status, sort } = req.query as {
-      status?: string;
-      sort?: "asc" | "desc";
-    };
-
-    const { page, limit, skip } = getPagination(req.query);
-
-    const filter: any = { user: req.user!._id };
-    // If status exists, add it to the filter
-    if (status) {
-      filter.status = status;
-    }
-
-    let sortDirection: 1 | -1 = -1;
-
-    // If ?sort=asc, then oldest → newest
-    if (sort === "asc") {
-      sortDirection = 1;
-    }
-    const totalRequests = await MaintenanceRequest.countDocuments(filter);
-    const requests = await MaintenanceRequest.find(filter)
-      .sort({
-        createdAt: sortDirection,
-      })
-      .skip(skip)
-      .limit(limit);
-
-    res.status(200).json({
-      page,
-      limit,
-      totalRequests,
-      totalPages: Math.ceil(totalRequests / limit),
-      requests,
-    });
-  } catch (error) {
-    res.status(500).json({ message: "Error fetching maintenance requests" });
-  }
-};
-
-// Tenant adds images to their maintenance request
+// Tenant: Upload images
 export const addImagesToMaintenanceRequest = async (
   req: AuthRequest,
   res: Response
 ) => {
   try {
-    const { id } = req.params;
-    const { images } = req.body as { images: string[] };
-
-    if (!Array.isArray(images) || images.length === 0) {
-      return res
-        .status(400)
-        .json({ message: "An array of image URLs is required" });
-    }
-
-    const request = await MaintenanceRequest.findById(id);
+    const request = await MaintenanceRequest.findById(req.params.id);
 
     if (!request) {
       return res.status(404).json({ message: "Request not found" });
     }
 
-    // Make sure this request belongs to the logged-in tenant
+    // Tenant can only update their own request
     if (request.user.toString() !== req.user!._id.toString()) {
       return res.status(403).json({ message: "Not authorized" });
     }
 
-    // do not allow editing closed requests
-    if (request.status === "closed") {
-      return res
-        .status(400)
-        .json({ message: "Cannot add images to a closed request" });
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({ message: "No images uploaded" });
     }
 
-    request.images.push(...images);
-
+    // Extract image URLs
+    const uploadedUrls = (req.files as Express.Multer.File[]).map(
+      (file) => file.path
+    );
+    request.images.push(...uploadedUrls);
     await request.save();
 
     res.status(200).json({
-      message: "Images added to maintenance request",
-      request,
+      message: "Images added successfully",
+      request: formatRequest(request),
     });
   } catch (error) {
-    res.status(500).json({ message: "Error adding images", error });
+    res.status(500).json({ message: "Error adding images" });
   }
 };
