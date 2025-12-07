@@ -17,6 +17,7 @@ const router = express.Router();
 // Everything below requires admin authentication
 router.use(protect, adminOnly);
 
+/// VIEW ROUTES ///
 // Admin views all requests
 router.get("/all", getAllMaintenanceRequests);
 
@@ -26,6 +27,7 @@ router.get("/open", getOpenMaintenanceRequests);
 // Admin views all closed requests
 router.get("/closed", getClosedMaintenanceRequests);
 
+/// ACTION ROUTES ///
 // Admin updates urgency
 router.put("/:id/urgency", updateRequestUrgency);
 
