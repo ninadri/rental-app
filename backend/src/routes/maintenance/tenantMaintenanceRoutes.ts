@@ -5,6 +5,7 @@ import {
   getTenantRequests,
   addImagesToMaintenanceRequest,
 } from "../../controllers/maintenance/tenantMaintenanceController";
+import { upload } from "../../middleware/uploadMiddleware";
 
 const router = express.Router();
 
@@ -17,6 +18,10 @@ router.post("/", createMaintenanceRequest);
 router.get("/", getTenantRequests);
 
 // Tenant adds images to a request
-router.patch("/:id/images", addImagesToMaintenanceRequest);
+router.patch(
+  "/:id/images",
+  upload.array("images", 10),
+  addImagesToMaintenanceRequest
+);
 
 export default router;
