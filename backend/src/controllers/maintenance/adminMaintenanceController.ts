@@ -1,264 +1,43 @@
 import { Response } from "express";
 import MaintenanceRequest from "../../models/MaintenanceRequest";
 import { AuthRequest } from "../../middleware/authMiddleware";
-import { getPagination } from "../../utils/paginate";
+import { getMaintenanceRequests } from "./getMaintenanceRequests";
 
-const validCategories = [
-  "hvac",
-  "kitchen",
-  "washer-dryer",
-  "bathroom",
-  "living-room",
-  "garage",
-  "lawn",
-  "bedroom",
-  "electrical",
-  "plumbing",
-  "general",
-];
+// ----------------------------
+// REFACTORED VIEW CONTROLLERS
+// ----------------------------
 
-// Get all open maintenance requests
-export const getOpenMaintenanceRequests = async (
-  req: AuthRequest,
-  res: Response
-) => {
-  try {
-    const { sort, urgency, sortUrgency, category } = req.query as {
-      sort?: "asc" | "desc";
-      urgency?: string;
-      sortUrgency?: "asc" | "desc";
-      category?: string;
-    };
+// Admin: All maintenance requests
+export const getAllMaintenanceRequests = getMaintenanceRequests();
 
-    const { page, limit, skip } = getPagination(req.query);
+// Admin: Open requests (pending + in-progress)
+export const getOpenMaintenanceRequests = getMaintenanceRequests({
+  status: { $in: ["pending", "in-progress"] },
+});
 
-    let sortDirection: 1 | -1 = -1;
-    if (sort === "asc") sortDirection = 1;
+// Admin: Closed requests
+export const getClosedMaintenanceRequests = getMaintenanceRequests({
+  status: "closed",
+});
 
-    const openStatuses = ["pending", "in-progress"];
+// ----------------------------
+// INDIVIDUAL ACTION CONTROLLERS
+// ----------------------------
 
-    const filter: any = { status: { $in: openStatuses } };
-
-    if (urgency) filter.urgency = urgency;
-
-    if (category && validCategories.includes(category)) {
-      filter.category = category;
-    }
-
-    const totalRequests = await MaintenanceRequest.countDocuments(filter);
-
-    const results = await MaintenanceRequest.find(filter)
-      .populate("user", "name email")
-      .sort({ createdAt: sortDirection })
-      .skip(skip)
-      .limit(limit);
-
-    if (sortUrgency) {
-      const urgencyValue: Record<string, number> = {
-        low: 1,
-        medium: 2,
-        high: 3,
-      };
-
-      results.sort((a, b) => {
-        const aVal = urgencyValue[a.urgency];
-        const bVal = urgencyValue[b.urgency];
-        return sortUrgency === "asc" ? aVal - bVal : bVal - aVal;
-      });
-    }
-
-    res.status(200).json({
-      page,
-      limit,
-      totalRequests,
-      totalPages: Math.ceil(totalRequests / limit),
-      requests: results.map((r) => {
-        const obj = r.toObject();
-        return {
-          _id: obj._id,
-          title: obj.title,
-          description: obj.description,
-          urgency: obj.urgency,
-          category: obj.category,
-          status: obj.status,
-          images: obj.images,
-          adminNotes: obj.adminNotes,
-          user: obj.user,
-          createdAt: obj.createdAt,
-          updatedAt: obj.updatedAt,
-        };
-      }),
-    });
-  } catch (error) {
-    res.status(500).json({ message: "Error fetching open requests" });
-  }
-};
-
-// Admin gets all closed requests
-export const getClosedMaintenanceRequests = async (
-  req: AuthRequest,
-  res: Response
-) => {
-  try {
-    const { sort, urgency, sortUrgency, category } = req.query as {
-      sort?: "asc" | "desc";
-      urgency?: string;
-      sortUrgency?: "asc" | "desc";
-      category?: string;
-    };
-    const { page, limit, skip } = getPagination(req.query);
-
-    let sortDirection: 1 | -1 = -1;
-    if (sort === "asc") sortDirection = 1;
-
-    const filter: any = { status: "closed" };
-
-    if (urgency) filter.urgency = urgency;
-
-    if (category && validCategories.includes(category)) {
-      filter.category = category;
-    }
-
-    const totalRequests = await MaintenanceRequest.countDocuments(filter);
-
-    const results = await MaintenanceRequest.find(filter)
-      .populate("user", "name email")
-      .sort({ createdAt: sortDirection })
-      .skip(skip)
-      .limit(limit);
-
-    if (sortUrgency) {
-      const urgencyValue: Record<string, number> = {
-        low: 1,
-        medium: 2,
-        high: 3,
-      };
-
-      results.sort((a, b) => {
-        const aVal = urgencyValue[a.urgency];
-        const bVal = urgencyValue[b.urgency];
-        return sortUrgency === "asc" ? aVal - bVal : bVal - aVal;
-      });
-    }
-
-    res.status(200).json({
-      page,
-      limit,
-      totalRequests,
-      totalPages: Math.ceil(totalRequests / limit),
-
-      requests: results.map((r) => {
-        const obj = r.toObject();
-        return {
-          _id: obj._id,
-          title: obj.title,
-          description: obj.description,
-          urgency: obj.urgency,
-          category: obj.category,
-          status: obj.status,
-          images: obj.images,
-          adminNotes: obj.adminNotes,
-          user: obj.user,
-          createdAt: obj.createdAt,
-          updatedAt: obj.updatedAt,
-        };
-      }),
-    });
-  } catch (error) {
-    res.status(500).json({ message: "Error fetching closed requests" });
-  }
-};
-
-// Admin views all maintenance requests
-export const getAllMaintenanceRequests = async (
-  _req: AuthRequest,
-  res: Response
-) => {
-  try {
-    const { sort, urgency, sortUrgency, category } = _req.query as {
-      sort?: "asc" | "desc";
-      urgency?: string;
-      sortUrgency?: "asc" | "desc";
-      category?: string;
-    };
-    const { page, limit, skip } = getPagination(_req.query);
-
-    let sortDirection: 1 | -1 = -1;
-    if (sort === "asc") sortDirection = 1;
-
-    const filter: any = {};
-
-    if (urgency) filter.urgency = urgency;
-
-    if (category && validCategories.includes(category)) {
-      filter.category = category;
-    }
-
-    const totalRequests = await MaintenanceRequest.countDocuments(filter);
-
-    const results = await MaintenanceRequest.find(filter)
-      .populate("user", "name email")
-      .sort({ createdAt: sortDirection })
-      .skip(skip)
-      .limit(limit);
-
-    if (sortUrgency) {
-      const urgencyValue: Record<string, number> = {
-        low: 1,
-        medium: 2,
-        high: 3,
-      };
-
-      results.sort((a, b) => {
-        const aVal = urgencyValue[a.urgency];
-        const bVal = urgencyValue[b.urgency];
-        return sortUrgency === "asc" ? aVal - bVal : bVal - aVal;
-      });
-    }
-
-    res.status(200).json({
-      page,
-      limit,
-      totalRequests,
-      totalPages: Math.ceil(totalRequests / limit),
-
-      requests: results.map((r) => {
-        const obj = r.toObject();
-        return {
-          _id: obj._id,
-          title: obj.title,
-          description: obj.description,
-          urgency: obj.urgency,
-          category: obj.category,
-          status: obj.status,
-          images: obj.images,
-          adminNotes: obj.adminNotes,
-          user: obj.user,
-          createdAt: obj.createdAt,
-          updatedAt: obj.updatedAt,
-        };
-      }),
-    });
-  } catch (error) {
-    res.status(500).json({ message: "Error fetching requests", error });
-  }
-};
-
-// Admin updates maintenance request status
+// Admin updates status
 export const updateRequestStatus = async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
 
     const validStatuses = ["pending", "in-progress", "completed", "closed"];
+
     if (!validStatuses.includes(status)) {
       return res.status(400).json({ message: "Invalid status option" });
     }
 
     const request = await MaintenanceRequest.findById(id);
-    if (!request) {
-      return res.status(404).json({ message: "Request not found" });
-    }
+    if (!request) return res.status(404).json({ message: "Request not found" });
 
     request.status = status;
     await request.save();
@@ -269,34 +48,24 @@ export const updateRequestStatus = async (req: AuthRequest, res: Response) => {
   }
 };
 
-// Admin closes a maintenance request
+// Admin closes request
 export const closeRequest = async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
 
     const request = await MaintenanceRequest.findById(id);
+    if (!request) return res.status(404).json({ message: "Request not found" });
 
-    if (!request) {
-      return res.status(404).json({ message: "Request not found" });
-    }
-
-    // Set status to closed
     request.status = "closed";
     await request.save();
 
-    res.status(200).json({
-      message: "Request closed",
-      request,
-    });
+    res.status(200).json({ message: "Request closed", request });
   } catch (error) {
-    res.status(500).json({
-      message: "Error closing request",
-      error,
-    });
+    res.status(500).json({ message: "Error closing request", error });
   }
 };
 
-// Admin views a single maintenance request
+// Admin views single request
 export const getSingleMaintenanceRequest = async (
   req: AuthRequest,
   res: Response
@@ -307,13 +76,14 @@ export const getSingleMaintenanceRequest = async (
       "name email"
     );
     if (!request) return res.status(404).json({ message: "Request not found" });
+
     res.status(200).json(request);
   } catch (error) {
     res.status(500).json({ message: "Error fetching request", error });
   }
 };
 
-// Admin adds a note to a maintenance request
+// Admin adds note
 export const addAdminNote = async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
@@ -324,9 +94,7 @@ export const addAdminNote = async (req: AuthRequest, res: Response) => {
     }
 
     const request = await MaintenanceRequest.findById(id);
-    if (!request) {
-      return res.status(404).json({ message: "Request not found" });
-    }
+    if (!request) return res.status(404).json({ message: "Request not found" });
 
     request.adminNotes.push({
       admin: req.user!._id,
@@ -336,16 +104,13 @@ export const addAdminNote = async (req: AuthRequest, res: Response) => {
 
     await request.save();
 
-    res.status(200).json({
-      message: "Admin note added",
-      request,
-    });
+    res.status(200).json({ message: "Admin note added", request });
   } catch (error) {
     res.status(500).json({ message: "Error adding note", error });
   }
 };
 
-// Admin updates maintenance request urgency
+// Admin updates urgency
 export const updateRequestUrgency = async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
@@ -354,28 +119,22 @@ export const updateRequestUrgency = async (req: AuthRequest, res: Response) => {
     const validUrgencies = ["low", "medium", "high"];
 
     if (!validUrgencies.includes(urgency)) {
-      return res.status(400).json({ message: "Invalid urgency value" });
+      return res.status(400).json({ message: "Invalid urgency option" });
     }
 
     const request = await MaintenanceRequest.findById(id);
-
-    if (!request) {
-      return res.status(404).json({ message: "Request not found" });
-    }
+    if (!request) return res.status(404).json({ message: "Request not found" });
 
     request.urgency = urgency;
     await request.save();
 
-    res.status(200).json({
-      message: "Urgency updated successfully",
-      request,
-    });
+    res.status(200).json({ message: "Urgency updated", request });
   } catch (error) {
     res.status(500).json({ message: "Error updating urgency", error });
   }
 };
 
-// Admin updates maintenance request category
+// Admin updates category
 export const updateRequestCategory = async (
   req: AuthRequest,
   res: Response
@@ -397,22 +156,18 @@ export const updateRequestCategory = async (
       "plumbing",
       "general",
     ];
+
     if (!validCategories.includes(category)) {
       return res.status(400).json({ message: "Invalid category option" });
     }
 
     const request = await MaintenanceRequest.findById(id);
-    if (!request) {
-      return res.status(404).json({ message: "Request not found" });
-    }
+    if (!request) return res.status(404).json({ message: "Request not found" });
 
     request.category = category;
     await request.save();
 
-    res.status(200).json({
-      message: "Category updated successfully",
-      request,
-    });
+    res.status(200).json({ message: "Category updated", request });
   } catch (error) {
     res.status(500).json({ message: "Error updating category", error });
   }
