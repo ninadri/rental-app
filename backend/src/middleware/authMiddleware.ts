@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 import { Request, Response, NextFunction } from "express";
-import User, { IUser } from "../models/User";
+import User from "../models/User";
 
 export interface AuthRequest extends Request {
   user?: {
@@ -29,7 +29,7 @@ export const protect = async (
         id: string;
       };
 
-      req.user = await User.findById(decoded.id).select("-password");
+      req.user = (await User.findById(decoded.id).select("-password")) as any;
 
       if (!req.user) {
         return res.status(401).json({ message: "User not found" });
