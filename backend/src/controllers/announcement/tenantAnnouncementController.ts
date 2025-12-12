@@ -19,8 +19,8 @@ export const getTenantAnnouncements = async (req: Request, res: Response) => {
     res.json(result);
   } catch (error) {
     console.error("Error fetching tenant announcements:", error);
-    res
-      .status(500)
-      .json({ message: "Server error fetching tenant announcements" });
+    res.status(500).json({
+      message: "Server error fetching tenant announcements",
+    });
   }
 };
