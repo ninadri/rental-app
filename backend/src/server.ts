@@ -1,17 +1,12 @@
 import express from "express";
 import dotenv from "dotenv";
 import connectDB from "./config/db";
-
 import authRoutes from "./routes/authRoutes";
 import protectedRoutes from "./routes/protectedRoutes";
-
-// Tenant maintenance routes
 import maintenanceRoutes from "./routes/maintenance/tenantMaintenanceRoutes";
-
-// Admin maintenance routes
 import adminMaintenanceRoutes from "./routes/maintenance/adminMaintenanceRoutes";
-
-import announcementRoutes from "./routes/announcementRoutes";
+import adminAnnouncementRoutes from "./routes/announcement/adminAnnouncementRoutes";
+import tenantAnnouncementRoutes from "./routes/announcement/tenantAnnouncementRoutes";
 
 dotenv.config();
 connectDB();
@@ -30,7 +25,10 @@ app.use("/api/maintenance", maintenanceRoutes);
 // Admin maintenance
 app.use("/api/admin/maintenance", adminMaintenanceRoutes);
 
-app.use("/api/announcements", announcementRoutes);
+// Admin announcements
+app.use("/api/admin/announcements", adminAnnouncementRoutes);
 
+// Tenant announcements
+app.use("/api/announcements", tenantAnnouncementRoutes);
 const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
