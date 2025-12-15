@@ -69,25 +69,37 @@ export const forgotPassword = async (req: Request, res: Response) => {
         .json({ message: "If an account exists, a reset link was sent." });
     }
 
+    // Check cooldown BEFORE generating new token
+    if (
+      user.resetPasswordExpires &&
+      user.resetPasswordExpires > new Date() &&
+      user.resetPasswordToken
+    ) {
+      return res.status(429).json({
+        message:
+          "A reset link was recently requested. Please wait before trying again.",
+      });
+    }
+
     // Generate reset token
     const resetToken = crypto.randomBytes(32).toString("hex");
 
-    // Hash token before saving
+    // Hash before saving to DB
     const hashedToken = crypto
       .createHash("sha256")
       .update(resetToken)
       .digest("hex");
 
-    // Save hashed token + expiration (15 min)
+    // Save hashed token + expiration
     user.resetPasswordToken = hashedToken;
     user.resetPasswordExpires = new Date(Date.now() + 15 * 60 * 1000);
 
     await user.save();
 
-    // Since no email yet, return token for testing
+    // Return token for testing
     return res.status(200).json({
       message: "Password reset token generated.",
-      resetToken, // only for testing
+      resetToken, // only for testing until SendGrid added
     });
   } catch (err) {
     console.error(err);
