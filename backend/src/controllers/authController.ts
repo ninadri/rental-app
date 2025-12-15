@@ -3,8 +3,8 @@ import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import User from "../models/User";
 
-const generateToken = (id: string, role: string) => {
-  return jwt.sign({ id, role }, process.env.JWT_SECRET as string, {
+const generateToken = (userId: string) => {
+  return jwt.sign({ id: userId }, process.env.JWT_SECRET as string, {
     expiresIn: "30d",
   });
 };
@@ -28,7 +28,7 @@ export const registerUser = async (req: Request, res: Response) => {
       name: user.name,
       email: user.email,
       role: user.role,
-      token: generateToken(user._id.toString(), user.role),
+      token: generateToken(user._id.toString()),
     });
   } catch (error) {
     res.status(500).json({ message: "Server error", error });
@@ -51,7 +51,7 @@ export const loginUser = async (req: Request, res: Response) => {
       name: user.name,
       email: user.email,
       role: user.role,
-      token: generateToken(user._id.toString(), user.role),
+      token: generateToken(user._id.toString()),
     });
   } catch (error) {
     res.status(500).json({ message: "Server error", error });
@@ -116,15 +116,27 @@ export const resetPassword = async (req: Request, res: Response) => {
     }
 
     // Set new password
-    user.password = password; // your pre-save hook hashes this
+    user.set({ password });
     user.resetPasswordToken = undefined;
     user.resetPasswordExpires = undefined;
 
     await user.save();
 
-    return res.status(200).json({ message: "Password reset successful" });
+    // AUTO LOGIN AFTER RESET
+    const authToken = generateToken(user._id.toString());
+
+    return res.status(200).json({
+      message: "Password reset successful",
+      token: authToken,
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
+    });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Server error" });
+    console.error("Reset password error:", err);
+    res.status(500).json({ message: "Server error resetting password" });
   }
 };
