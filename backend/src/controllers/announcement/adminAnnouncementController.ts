@@ -78,10 +78,11 @@ export const deleteAnnouncement = async (req: Request, res: Response) => {
     const { id } = req.params;
 
     await AdminAnnouncementService.deleteAnnouncement(id);
-
-    res.status(204).send();
+    return res.status(200).json({ message: "Announcement deleted" });
   } catch (error) {
     console.error("Error deleting announcement:", error);
-    res.status(500).json({ message: "Server error deleting announcement" });
+    return res
+      .status(500)
+      .json({ message: "Server error deleting announcement" });
   }
 };
