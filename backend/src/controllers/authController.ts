@@ -152,3 +152,49 @@ export const resetPassword = async (req: Request, res: Response) => {
     res.status(500).json({ message: "Server error resetting password" });
   }
 };
+
+export const changePassword = async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user._id; // from protect middleware
+    const { oldPassword, newPassword } = req.body;
+
+    if (!oldPassword || !newPassword) {
+      return res
+        .status(400)
+        .json({ message: "oldPassword and newPassword are required" });
+    }
+
+    // Find user
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Verify old password
+    const isMatch = await user.comparePassword(oldPassword);
+    if (!isMatch) {
+      return res.status(400).json({ message: "Old password is incorrect" });
+    }
+
+    // Set new password
+    user.set({ password: newPassword });
+    await user.save();
+
+    // Auto-login (generate new JWT)
+    const token = generateToken(user._id.toString());
+
+    return res.status(200).json({
+      message: "Password updated successfully",
+      token,
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
+    });
+  } catch (error) {
+    console.error("Change password error:", error);
+    res.status(500).json({ message: "Server error updating password" });
+  }
+};
