@@ -25,8 +25,10 @@ export const getTenantAnnouncements = async (
 ) => {
   const { page = 1, limit = 10, category, userId } = options;
 
+  const now = new Date();
   const filter: FilterQuery<IAnnouncement> = {
     published: true,
+    publishAt: { $lte: now },
   };
 
   if (category) {

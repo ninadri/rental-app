@@ -42,6 +42,10 @@ const announcementSchema = new Schema<IAnnouncement>(
       type: Boolean,
       default: true, // tenants will only see published ones
     },
+    publishAt: {
+      type: Date,
+      default: Date.now, // when the announcement was published
+    },
     readBy: [
       {
         user: { type: Schema.Types.ObjectId, ref: "User", required: true },
