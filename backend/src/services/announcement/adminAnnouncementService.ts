@@ -17,6 +17,7 @@ interface CreateAnnouncementInput {
   message: string;
   category: AnnouncementCategory;
   published?: boolean;
+  publishAt?: Date;
 }
 
 interface UpdateAnnouncementInput {
@@ -24,6 +25,7 @@ interface UpdateAnnouncementInput {
   message?: string;
   category?: AnnouncementCategory;
   published?: boolean;
+  publishAt?: Date;
 }
 
 export const createAnnouncement = async (

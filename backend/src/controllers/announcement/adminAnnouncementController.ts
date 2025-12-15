@@ -4,7 +4,7 @@ import { AnnouncementCategory } from "../../models/Announcement";
 
 export const createAnnouncement = async (req: Request, res: Response) => {
   try {
-    const { title, message, category, published } = req.body;
+    const { title, message, category, published, publishAt } = req.body;
 
     if (!title || !message) {
       return res
@@ -17,6 +17,7 @@ export const createAnnouncement = async (req: Request, res: Response) => {
       message,
       category: category as AnnouncementCategory,
       published,
+      publishAt,
     });
 
     res.status(201).json(announcement);
@@ -57,10 +58,13 @@ export const updateAnnouncement = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
-    const updated = await AdminAnnouncementService.updateAnnouncement(
-      id,
-      req.body
-    );
+    const updated = await AdminAnnouncementService.updateAnnouncement(id, {
+      title: req.body.title,
+      message: req.body.message,
+      category: req.body.category,
+      published: req.body.published,
+      publishAt: req.body.publishAt,
+    });
 
     if (!updated) {
       return res.status(404).json({ message: "Announcement not found" });
