@@ -1,10 +1,15 @@
-import { Schema, model, Document } from "mongoose";
+import { Schema, model, Document, Types } from "mongoose";
 
 export type AnnouncementCategory =
   | "general"
   | "maintenance"
   | "billing"
   | "urgent";
+
+interface AnnouncementReadEntry {
+  user: Types.ObjectId;
+  readAt: Date;
+}
 
 export interface IAnnouncement extends Document {
   title: string;
@@ -13,6 +18,7 @@ export interface IAnnouncement extends Document {
   published: boolean;
   createdAt: Date;
   updatedAt: Date;
+  readBy: AnnouncementReadEntry[];
 }
 
 const announcementSchema = new Schema<IAnnouncement>(
@@ -36,6 +42,12 @@ const announcementSchema = new Schema<IAnnouncement>(
       type: Boolean,
       default: true, // tenants will only see published ones
     },
+    readBy: [
+      {
+        user: { type: Schema.Types.ObjectId, ref: "User", required: true },
+        readAt: { type: Date, default: Date.now },
+      },
+    ],
   },
   { timestamps: true }
 );
