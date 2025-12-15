@@ -7,15 +7,23 @@ export interface IUser extends Document {
   email: string;
   password: string;
   role: "tenant" | "admin";
+
+  // Forgot-password fields
+  resetPasswordToken?: string;
+  resetPasswordExpires?: Date;
+
   comparePassword(candidatePassword: string): Promise<boolean>;
 }
 
 const userSchema = new Schema<IUser>(
   {
-    name: { type: String, required: true },
+    name: { type: String },
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
     role: { type: String, enum: ["tenant", "admin"], default: "tenant" },
+
+    resetPasswordToken: { type: String },
+    resetPasswordExpires: { type: Date },
   },
   { timestamps: true }
 );
@@ -23,6 +31,7 @@ const userSchema = new Schema<IUser>(
 // Hash password before saving
 userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();
+
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
   next();
