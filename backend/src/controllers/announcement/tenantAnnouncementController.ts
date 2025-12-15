@@ -62,3 +62,27 @@ export const markAnnouncementAsRead = async (req: Request, res: Response) => {
     });
   }
 };
+
+export const markAllAnnouncementsAsRead = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const user = (req as any).user;
+
+    if (!user || !user._id) {
+      return res.status(401).json({ message: "Not authorized" });
+    }
+
+    const result = await TenantAnnouncementService.markAllAnnouncementsAsRead(
+      user._id.toString()
+    );
+
+    return res.status(200).json(result);
+  } catch (error) {
+    console.error("Error marking all announcements as read:", error);
+    res.status(500).json({
+      message: "Server error marking announcements as read",
+    });
+  }
+};

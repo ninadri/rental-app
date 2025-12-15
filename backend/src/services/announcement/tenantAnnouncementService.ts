@@ -40,7 +40,7 @@ export const getTenantAnnouncements = async (
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
-      .exec(),
+      .exec() as Promise<IAnnouncement[]>,
     Announcement.countDocuments(filter),
   ]);
 
@@ -50,7 +50,7 @@ export const getTenantAnnouncements = async (
     const isRead = ann.readBy?.some((entry) => entry.user.equals(userObjectId));
 
     return {
-      _id: ann._id.toString(),
+      _id: ann.id.toString(),
       title: ann.title,
       message: ann.message,
       category: ann.category,
@@ -90,4 +90,26 @@ export const markAnnouncementAsRead = async (
   }
 
   return announcement;
+};
+
+export const markAllAnnouncementsAsRead = async (userId: string) => {
+  const userObjectId = new Types.ObjectId(userId);
+
+  // Update all published announcements the user hasn't read yet
+  await Announcement.updateMany(
+    {
+      published: true,
+      "readBy.user": { $ne: userObjectId }, // not already read
+    },
+    {
+      $push: {
+        readBy: {
+          user: userObjectId,
+          readAt: new Date(),
+        },
+      },
+    }
+  );
+
+  return { message: "All announcements marked as read" };
 };
