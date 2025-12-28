@@ -2,7 +2,7 @@ import mongoose, { Document, Schema } from "mongoose";
 import bcrypt from "bcryptjs";
 
 export interface IUser extends Document {
-  _id: mongoose.Types.ObjectId; // ✅ Add this
+  _id: mongoose.Types.ObjectId;
   name: string;
   email: string;
   password: string;
@@ -21,7 +21,6 @@ const userSchema = new Schema<IUser>(
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
     role: { type: String, enum: ["tenant", "admin"], default: "tenant" },
-
     resetPasswordToken: { type: String },
     resetPasswordExpires: { type: Date },
   },
