@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import User from "../models/User";
+import { updateUserAccount } from "../services/auth/accountService";
 
 const generateToken = (userId: string) => {
   return jwt.sign({ id: userId }, process.env.JWT_SECRET as string, {
@@ -196,5 +197,72 @@ export const changePassword = async (req: Request, res: Response) => {
   } catch (error) {
     console.error("Change password error:", error);
     res.status(500).json({ message: "Server error updating password" });
+  }
+};
+
+export const updateAccount = async (req: Request, res: Response) => {
+  try {
+    const userFromReq = (req as any).user; // set by protect middleware
+    const userId = userFromReq?._id;
+
+    if (!userId) {
+      return res.status(401).json({ message: "Not authorized" });
+    }
+
+    const { name, email } = req.body;
+
+    // Require at least one field
+    if (name === undefined && email === undefined) {
+      return res.status(400).json({
+        message: "Please provide at least one field to update (name or email)",
+      });
+    }
+
+    // Basic type checks
+    if (name !== undefined && typeof name !== "string") {
+      return res.status(400).json({ message: "Name must be a string" });
+    }
+
+    if (email !== undefined && typeof email !== "string") {
+      return res.status(400).json({ message: "Email must be a string" });
+    }
+
+    // Use the service to perform the actual update
+    const { user, emailChanged } = await updateUserAccount(userId.toString(), {
+      name,
+      email,
+    });
+
+    // Refresh JWT like login / changePassword / resetPassword
+    const token = generateToken(user._id.toString());
+
+    return res.status(200).json({
+      message: "Account updated successfully",
+      emailChanged,
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      token,
+    });
+  } catch (error: any) {
+    if (error?.message === "NO_FIELDS_PROVIDED") {
+      return res.status(400).json({
+        message: "Please provide at least one field to update (name or email)",
+      });
+    }
+
+    if (error?.message === "USER_NOT_FOUND") {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (error?.message === "EMAIL_IN_USE") {
+      return res.status(400).json({ message: "Email is already in use" });
+    }
+
+    console.error("Update account error:", error);
+    return res
+      .status(500)
+      .json({ message: "Server error updating account", error });
   }
 };
