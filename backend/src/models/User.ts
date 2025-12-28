@@ -12,6 +12,10 @@ export interface IUser extends Document {
   resetPasswordToken?: string;
   resetPasswordExpires?: Date;
 
+  // soft delete fields
+  isActive: boolean;
+  deactivatedAt?: Date;
+
   comparePassword(candidatePassword: string): Promise<boolean>;
 }
 
@@ -21,8 +25,12 @@ const userSchema = new Schema<IUser>(
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
     role: { type: String, enum: ["tenant", "admin"], default: "tenant" },
+
     resetPasswordToken: { type: String },
     resetPasswordExpires: { type: Date },
+
+    isActive: { type: Boolean, default: true },
+    deactivatedAt: { type: Date },
   },
   { timestamps: true }
 );
