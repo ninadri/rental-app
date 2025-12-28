@@ -4,6 +4,7 @@ import crypto from "crypto";
 import User from "../models/User";
 import { updateUserAccount } from "../services/auth/accountService";
 import { AuthRequest } from "../middleware/authMiddleware";
+import { deactivateTenantAccountByAdmin } from "../services/auth/deactivateAccountService";
 
 const generateToken = (userId: string) => {
   return jwt.sign({ id: userId }, process.env.JWT_SECRET as string, {
@@ -44,6 +45,12 @@ export const loginUser = async (req: Request, res: Response) => {
     const user = await User.findOne({ email });
     if (!user) return res.status(400).json({ message: "Invalid credentials" });
 
+    if (user.isActive === false) {
+      return res
+        .status(403)
+        .json({ message: "Account is deactivated. Please contact support." });
+    }
+
     const isMatch = await user.comparePassword(password);
     if (!isMatch)
       return res.status(400).json({ message: "Invalid credentials" });
@@ -66,6 +73,12 @@ export const forgotPassword = async (req: Request, res: Response) => {
     const user = await User.findOne({ email });
 
     if (!user) {
+      return res
+        .status(200)
+        .json({ message: "If an account exists, a reset link was sent." });
+    }
+
+    if (user.isActive === false) {
       return res
         .status(200)
         .json({ message: "If an account exists, a reset link was sent." });
@@ -286,5 +299,47 @@ export const getMe = async (req: AuthRequest, res: Response) => {
     return res
       .status(500)
       .json({ message: "Server error fetching profile", error });
+  }
+};
+
+export const adminDeactivateTenant = async (
+  req: AuthRequest,
+  res: Response
+) => {
+  try {
+    // adminOnly middleware should enforce role, but we double-guard here
+    if (!req.user || req.user.role !== "admin") {
+      return res.status(403).json({ message: "Admins only" });
+    }
+
+    const { id } = req.params; // tenant id in URL
+
+    if (!id) {
+      return res.status(400).json({ message: "Tenant ID is required" });
+    }
+
+    const user = await deactivateTenantAccountByAdmin(id);
+
+    return res.status(200).json({
+      message: "Tenant account deactivated successfully",
+      tenantId: user._id,
+      deactivatedAt: user.deactivatedAt,
+    });
+  } catch (error: any) {
+    if (error?.message === "USER_NOT_FOUND") {
+      return res.status(404).json({ message: "Tenant not found" });
+    }
+
+    if (error?.message === "NOT_TENANT") {
+      return res
+        .status(400)
+        .json({ message: "Only tenant accounts can be deactivated" });
+    }
+
+    console.error("Admin deactivate tenant error:", error);
+    return res.status(500).json({
+      message: "Server error deactivating tenant account",
+      error,
+    });
   }
 };

@@ -8,6 +8,8 @@ export interface AuthRequest extends Request {
     name?: string;
     email?: string;
     role: "tenant" | "admin";
+    isActive?: boolean;
+    deactivatedAt?: Date;
   };
 }
 
@@ -33,6 +35,9 @@ export const protect = async (
 
       if (!req.user) {
         return res.status(401).json({ message: "User not found" });
+      }
+      if (req.user.isActive === false) {
+        return res.status(403).json({ message: "Account is deactivated" });
       }
 
       return next();
