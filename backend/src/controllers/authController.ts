@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import User from "../models/User";
 import { updateUserAccount } from "../services/auth/accountService";
+import { AuthRequest } from "../middleware/authMiddleware";
 
 const generateToken = (userId: string) => {
   return jwt.sign({ id: userId }, process.env.JWT_SECRET as string, {
@@ -264,5 +265,26 @@ export const updateAccount = async (req: Request, res: Response) => {
     return res
       .status(500)
       .json({ message: "Server error updating account", error });
+  }
+};
+
+export const getMe = async (req: AuthRequest, res: Response) => {
+  try {
+    // protect middleware should have set req.user
+    if (!req.user?._id) {
+      return res.status(401).json({ message: "Not authorized" });
+    }
+
+    return res.status(200).json({
+      _id: req.user._id,
+      name: req.user.name,
+      email: req.user.email,
+      role: req.user.role,
+    });
+  } catch (error) {
+    console.error("Get profile error:", error);
+    return res
+      .status(500)
+      .json({ message: "Server error fetching profile", error });
   }
 };

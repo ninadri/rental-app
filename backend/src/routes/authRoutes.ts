@@ -6,32 +6,24 @@ import {
   resetPassword,
   changePassword,
   updateAccount,
+  getMe,
 } from "../controllers/authController";
 import { forgotPasswordIPLimit } from "../middleware/rateLimit";
 import { protect } from "../middleware/authMiddleware";
 
 const router = express.Router();
 
-// Public routes
+// Public
 router.post("/register", registerUser);
 router.post("/login", loginUser);
 router.post("/forgot-password", forgotPassword);
 router.post("/reset-password/:token", resetPassword);
 
-// Protected routes
+// Protected
 router.use(protect);
 
+router.get("/me", getMe);
 router.post("/change-password", changePassword);
 router.patch("/account", updateAccount);
-// Public routes
-router.post("/register", registerUser);
-router.post("/login", loginUser);
-router.post("/forgot-password", forgotPassword);
-router.post("/reset-password/:token", resetPassword);
 
-// Protected routes
-router.use(protect);
-
-router.post("/change-password", changePassword);
-router.patch("/account", updateAccount);
 export default router;
