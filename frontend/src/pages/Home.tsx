@@ -1,7 +1,31 @@
 import { Link } from "react-router-dom";
-import home from "../assets/photos/home.jpg";
 
-const Home = () => {
+import home from "../assets/photos/home.jpg";
+import PhotoCarousel from "./components/PhotoCarousel";
+
+import livingRoom1 from "../assets/photos/living-room.jpeg";
+import livingRoom2 from "../assets/photos/living-room2.jpeg";
+import kitchen1 from "../assets/photos/kitchen.jpeg";
+import kitchen2 from "../assets/photos/kitchen2.jpeg";
+import diningArea from "../assets/photos/dining-area.jpeg";
+import master1 from "../assets/photos/master.jpeg";
+import master2 from "../assets/photos/master2.jpeg";
+import hall from "../assets/photos/hall.jpeg";
+import entryFront from "../assets/photos/left-front.jpg";
+
+const galleryImages = [
+  { src: livingRoom1, alt: "Living room" },
+  { src: livingRoom2, alt: "Living room angle 2" },
+  { src: kitchen1, alt: "Kitchen" },
+  { src: kitchen2, alt: "Kitchen alternate view" },
+  { src: diningArea, alt: "Dining area" },
+  { src: master1, alt: "Primary bedroom" },
+  { src: master2, alt: "Primary bedroom alternate" },
+  { src: hall, alt: "Hallway" },
+  { src: entryFront, alt: "Front entryway" },
+];
+
+const HomePage = () => {
   return (
     <div className="min-h-screen flex flex-col bg-slate-100">
       {/* Top bar */}
@@ -22,7 +46,7 @@ const Home = () => {
             <span className="h-8 w-8 rounded-full bg-brand text-white flex items-center justify-center text-xs font-black">
               MP
             </span>
-            <span className="font-semibold text-body">
+            <span className="font-semibold text-body text-sm">
               MITSPROP, LLC Rental Property
             </span>
           </div>
@@ -31,7 +55,7 @@ const Home = () => {
 
       {/* Hero section */}
       <main className="flex-1">
-        <section className="bg-brand text-white">
+        <section className="bg-teal-700 text-white">
           <div className="max-w-6xl mx-auto px-4 py-12 grid gap-10 md:grid-cols-2 items-center">
             {/* Hero text */}
             <div className="space-y-4">
@@ -42,19 +66,11 @@ const Home = () => {
                 A cozy place to live, with everything you need nearby.
               </h1>
               <p className="text-sm md:text-base text-slate-200">
-                Use this space to describe your property: number of bedrooms,
-                natural light, updates you’ve made, and what it feels like to
-                live here. Later you can swap this copy for real details.
+                In a quiet East El Paso neighborhood with quick access to nearby
+                shopping centers, restaurants, and daily conveniences.
               </p>
 
               <div className="flex flex-wrap gap-3 pt-2">
-                <Link
-                  to="/login"
-                  className="inline-flex items-center justify-center px-4 py-2 rounded-md bg-white text-brand text-sm font-medium hover:bg-brand-light/70 transition-colors"
-                >
-                  Tenant / Admin Login
-                </Link>
-
                 <button
                   type="button"
                   className="inline-flex items-center justify-center px-4 py-2 rounded-md border border-accent-teal text-sm text-white hover:bg-accent-teal/90 transition-colors"
@@ -71,40 +87,48 @@ const Home = () => {
                 alt="view of the rental property"
                 className="w-full h-full object-cover"
               />
+              <p className="text-xs text-slate-300 p-2 bg-slate-900/60">
+                12549 Martin Bauman Dr · El Paso, TX 79928
+              </p>
             </div>
           </div>
         </section>
 
         {/* Features row */}
-        <section className="max-w-6xl mx-auto px-4 py-8">
+        <section className="max-w-6xl mx-auto px-4 py-10">
           <div className="grid gap-4 sm:grid-cols-3">
-            <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-4">
-              <p className="text-xs uppercase tracking-wide text-slate-500 mb-1">
-                The home
-              </p>
-              <p className="text-sm font-semibold text-slate-900">
-                2–3 bedroom layout, lots of natural light, updated finishes, and
-                room to make it your own.
-              </p>
-            </div>
-            <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-4">
-              <p className="text-xs uppercase tracking-wide text-slate-500 mb-1">
-                Convenience
-              </p>
-              <p className="text-sm font-semibold text-slate-900">
-                Close to grocery stores, coffee shops, and quick access to main
-                roads or transit.
-              </p>
-            </div>
-            <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-4">
-              <p className="text-xs uppercase tracking-wide text-slate-500 mb-1">
-                Community
-              </p>
-              <p className="text-sm font-semibold text-slate-900">
-                Quiet, friendly neighborhood where people look out for each
-                other.
-              </p>
-            </div>
+            {[
+              {
+                label: "The home",
+                title: "Comfortable 4 bed / 2 bath layout",
+                body: "Lots of natural light, updated finishes, and room to make it your own.",
+              },
+              {
+                label: "Convenience",
+                title: "Easy access to everyday essentials",
+                body: "Near Loop 375 with quick drives to groceries, shopping, and dining throughout East El Paso.",
+              },
+              {
+                label: "Community",
+                title: "Quiet, friendly neighborhood feel",
+                body: "A calm area where neighbors look out for each other.",
+              },
+            ].map((c) => (
+              <div
+                key={c.label}
+                className="bg-white rounded-xl shadow-sm border border-slate-100 p-5"
+              >
+                <p className="text-xs uppercase tracking-wide text-slate-500">
+                  {c.label}
+                </p>
+                <p className="mt-2 text-base font-semibold text-slate-900 leading-snug">
+                  {c.title}
+                </p>
+                <p className="mt-2 text-sm text-slate-600 leading-relaxed">
+                  {c.body}
+                </p>
+              </div>
+            ))}
           </div>
         </section>
 
@@ -112,54 +136,71 @@ const Home = () => {
         <section className="max-w-6xl mx-auto px-4 pb-12 grid gap-8 lg:grid-cols-3">
           {/* Image strip / gallery */}
           <div className="lg:col-span-2 space-y-3">
-            <h2 className="text-xl font-semibold text-slate-900">
+            <h2 className="text-xl font-semibold text-body">
               A quick look inside
             </h2>
-            <p className="text-sm text-slate-700">
-              Swap these photos with real pictures of your property later. You
-              can keep the layout and just update the image URLs.
+            <p className="text-sm text-body/80">
+              Swipe through a few photos to get a feel for the space.
             </p>
 
-            <div className="grid gap-3 sm:grid-cols-3">
-              <div className="rounded-lg overflow-hidden border border-slate-200">
-                <img
-                  src="https://images.pexels.com/photos/1571463/pexels-photo-1571463.jpeg"
-                  alt="Living room"
-                  className="w-full h-32 object-cover"
-                />
-              </div>
-              <div className="rounded-lg overflow-hidden border border-slate-200">
-                <img
-                  src="https://images.pexels.com/photos/279746/pexels-photo-279746.jpeg"
-                  alt="Kitchen"
-                  className="w-full h-32 object-cover"
-                />
-              </div>
-              <div className="rounded-lg overflow-hidden border border-slate-200">
-                <img
-                  src="https://images.pexels.com/photos/1454806/pexels-photo-1454806.jpeg"
-                  alt="Bedroom"
-                  className="w-full h-32 object-cover"
-                />
-              </div>
+            <PhotoCarousel images={galleryImages} />
+
+            {/* Thumbnail strip */}
+            <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 pt-2">
+              {galleryImages.slice(0, 10).map((img) => (
+                <div
+                  key={img.alt}
+                  className="rounded-lg overflow-hidden border border-hairline bg-white shadow-sm"
+                >
+                  <img
+                    src={img.src}
+                    alt={img.alt}
+                    className="h-20 w-full object-cover"
+                    loading="lazy"
+                  />
+                </div>
+              ))}
             </div>
           </div>
 
           {/* About the area */}
-          <div className="space-y-3">
-            <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wide">
+          <div className="space-y-3 bg-surface-muted rounded-xl p-4 border border-hairline">
+            <h3 className="text-sm font-semibold text-body uppercase tracking-wide">
               About the area
             </h3>
-            <p className="text-sm text-slate-700">
-              Use this space to talk about nearby parks, trails, favorite local
-              coffee shops, schools, or anything that makes this location feel
-              special.
+            <p className="text-sm text-body/80">
+              In a quiet East El Paso neighborhood with quick access to Loop
+              375, shopping, dining, and everyday essentials just a short drive
+              away.
             </p>
-            <ul className="text-sm text-slate-700 space-y-1">
-              <li>• 5–10 minutes to groceries & essentials</li>
-              <li>• Short drive to dining, shopping, or entertainment</li>
-              <li>• Easy access to major roads or transit</li>
-            </ul>
+
+            {/* Mini cards instead of bullets */}
+            <div className="grid gap-3">
+              {[
+                {
+                  title: "Essentials",
+                  body: "5–10 minutes to groceries & daily needs",
+                },
+                {
+                  title: "Access",
+                  body: "Easy connection to Loop 375 + main roads",
+                },
+                {
+                  title: "Lifestyle",
+                  body: "Short drive to parks, schools, and local spots",
+                },
+              ].map((x) => (
+                <div
+                  key={x.title}
+                  className="rounded-lg bg-white/60 border border-hairline p-3"
+                >
+                  <p className="text-sm font-semibold text-body">{x.title}</p>
+                  <p className="mt-1 text-sm text-body/80 leading-relaxed">
+                    {x.body}
+                  </p>
+                </div>
+              ))}
+            </div>
           </div>
         </section>
       </main>
@@ -175,4 +216,4 @@ const Home = () => {
   );
 };
 
-export default Home;
+export default HomePage;
