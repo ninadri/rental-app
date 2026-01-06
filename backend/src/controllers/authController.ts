@@ -14,27 +14,38 @@ const generateToken = (userId: string) => {
 
 export const registerUser = async (req: Request, res: Response) => {
   try {
-    const { name, email, password, role } = req.body;
-
-    const userExists = await User.findOne({ email });
-    if (userExists)
-      return res.status(400).json({ message: "User already exists" });
-
-    if (role !== "admin" && role !== "tenant") {
-      return res.status(400).json({ message: "Invalid role" });
+    if ("role" in req.body) {
+      return res
+        .status(400)
+        .json({ message: "Role cannot be set during registration" });
     }
 
-    const user = await User.create({ name, email, password, role });
+    const { name, email, password } = req.body;
 
-    res.status(201).json({
+    const userExists = await User.findOne({ email });
+    if (userExists) {
+      return res.status(400).json({ message: "User already exists" });
+    }
+
+    // Optional basic validation
+    if (!email || !password) {
+      return res
+        .status(400)
+        .json({ message: "Email and password are required" });
+    }
+
+    // Role will default to "tenant" from the schema
+    const user = await User.create({ name, email, password });
+
+    return res.status(201).json({
       _id: user._id,
       name: user.name,
       email: user.email,
-      role: user.role,
+      role: user.role, // will be "tenant"
       token: generateToken(user._id.toString()),
     });
   } catch (error) {
-    res.status(500).json({ message: "Server error", error });
+    return res.status(500).json({ message: "Server error", error });
   }
 };
 
@@ -341,5 +352,55 @@ export const adminDeactivateTenant = async (
       message: "Server error deactivating tenant account",
       error,
     });
+  }
+};
+
+export const createUserAsAdmin = async (req: AuthRequest, res: Response) => {
+  try {
+    // Double-guard (route should also use adminOnly middleware)
+    if (!req.user || req.user.role !== "admin") {
+      return res.status(403).json({ message: "Admins only" });
+    }
+
+    const { name, email, password, role } = req.body as {
+      name?: string;
+      email?: string;
+      password?: string;
+      role?: "tenant" | "admin";
+    };
+
+    if (!email || !password) {
+      return res
+        .status(400)
+        .json({ message: "email and password are required" });
+    }
+
+    const normalizedRole: "tenant" | "admin" =
+      role === "admin" ? "admin" : "tenant";
+
+    const userExists = await User.findOne({ email });
+    if (userExists) {
+      return res.status(400).json({ message: "User already exists" });
+    }
+
+    const user = await User.create({
+      name,
+      email,
+      password,
+      role: normalizedRole,
+    });
+
+    return res.status(201).json({
+      message: "User created successfully",
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        isActive: user.isActive,
+      },
+    });
+  } catch (error) {
+    return res.status(500).json({ message: "Server error", error });
   }
 };

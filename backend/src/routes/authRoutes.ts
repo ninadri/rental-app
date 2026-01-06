@@ -8,6 +8,7 @@ import {
   updateAccount,
   getMe,
   adminDeactivateTenant,
+  createUserAsAdmin,
 } from "../controllers/authController";
 import { forgotPasswordIPLimit } from "../middleware/rateLimit";
 import { protect, adminOnly } from "../middleware/authMiddleware";
@@ -28,6 +29,7 @@ router.post("/change-password", changePassword);
 router.patch("/account", updateAccount);
 
 // Admin-only routes (after protect)
+router.post("/admin/users", adminOnly, createUserAsAdmin);
 router.patch(
   "/admin/users/:id/deactivate",
   protect,
