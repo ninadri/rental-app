@@ -12,6 +12,18 @@ import master1 from "../assets/photos/master.jpeg";
 import master2 from "../assets/photos/master2.jpeg";
 import hall from "../assets/photos/hall.jpeg";
 import entryFront from "../assets/photos/left-front.jpg";
+import bedroom1Closet from "../assets/photos/bedroom1-closet.jpeg";
+import bedroom1 from "../assets/photos/bedroom1.jpeg";
+import bedroom2 from "../assets/photos/bedroom2.jpeg";
+import bedroom2Area from "../assets/photos/bedroom2-area.jpeg";
+import bedroom3Closet from "../assets/photos/bedroom3-closet.jpeg";
+import bedroom3 from "../assets/photos/bedroom3.jpeg";
+import bathroom1 from "../assets/photos/guest-bathroom1.jpeg";
+import masterBathroom from "../assets/photos/master-bathroom.jpeg";
+import masterBathroom2 from "../assets/photos/master-bathroom1.jpeg";
+import masterCloset from "../assets/photos/master-closet.jpeg";
+import masterEntry from "../assets/photos/master-entry.jpeg";
+import guestBathroom2 from "../assets/photos/guest-bathroom1.jpeg";
 
 const galleryImages = [
   { src: livingRoom1, alt: "Living room" },
@@ -23,6 +35,18 @@ const galleryImages = [
   { src: master2, alt: "Primary bedroom alternate" },
   { src: hall, alt: "Hallway" },
   { src: entryFront, alt: "Front entryway" },
+  { src: bedroom1Closet, alt: "Bedroom 1 closet" },
+  { src: bedroom1, alt: "Bedroom 1" },
+  { src: bedroom2, alt: "Bedroom 2" },
+  { src: bedroom2Area, alt: "Bedroom 2 alternate view" },
+  { src: bedroom3Closet, alt: "Bedroom 3 closet" },
+  { src: bedroom3, alt: "Bedroom 3" },
+  { src: bathroom1, alt: "Guest bathroom 1" },
+  { src: guestBathroom2, alt: "Guest bathroom 2" },
+  { src: masterBathroom, alt: "Primary bathroom" },
+  { src: masterBathroom2, alt: "Primary bathroom alternate" },
+  { src: masterCloset, alt: "Primary bedroom closet" },
+  { src: masterEntry, alt: "Primary bedroom entryway" },
 ];
 
 const HomePage = () => {
@@ -209,7 +233,7 @@ const HomePage = () => {
       <footer className="border-t bg-white">
         <div className="max-w-6xl mx-auto px-4 py-4 text-xs text-slate-500 flex justify-between">
           <span>© {new Date().getFullYear()} Rental Property</span>
-          <span>Tenant & Admin Portal</span>
+          <span>Tenant Portal</span>
         </div>
       </footer>
     </div>
