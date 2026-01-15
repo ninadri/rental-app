@@ -1,25 +1,28 @@
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
-const Login = () => {
+const LoginPage = () => {
   const { user, login } = useAuth();
   const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  // If already logged in, go to dashboard
-  if (user) {
-    navigate("/dashboard");
-  }
+  // If already logged in, go to dashboard (avoid navigating during render)
+  useEffect(() => {
+    if (user) navigate("/dashboard");
+  }, [user, navigate]);
 
   const handleLogin = async (e: FormEvent) => {
     e.preventDefault();
     setError(null);
     setSubmitting(true);
+
     try {
       await login(email, password);
       navigate("/dashboard");
@@ -78,15 +81,69 @@ const Login = () => {
               >
                 Password
               </label>
-              <input
-                id="password"
-                type="password"
-                className="w-full border rounded px-3 py-2 text-sm bg-slate-50 focus:bg-white focus:ring-2 focus:ring-slate-300"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                autoComplete="current-password"
-              />
+
+              <div className="relative">
+                <input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  className="w-full border rounded px-3 py-2 pr-12 text-sm bg-slate-50 focus:bg-white focus:ring-2 focus:ring-slate-300"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  autoComplete="current-password"
+                />
+
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 z-10 text-slate-600 hover:text-slate-900"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? (
+                    // Eye-off
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                      <path
+                        d="M3 3l18 18"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                      />
+                      <path
+                        d="M10.6 10.6a3 3 0 004.2 4.2"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                      />
+                      <path
+                        d="M9.88 5.11A10.94 10.94 0 0112 5c7 0 10 7 10 7a18.4 18.4 0 01-3.11 4.18"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                      />
+                      <path
+                        d="M6.1 6.1C3.7 7.8 2 12 2 12s3 7 10 7a10.9 10.9 0 005.9-1.7"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                      />
+                    </svg>
+                  ) : (
+                    // Eye
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                      <path
+                        d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7S2 12 2 12z"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                      />
+                      <path
+                        d="M12 15a3 3 0 110-6 3 3 0 010 6z"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                      />
+                    </svg>
+                  )}
+                </button>
+              </div>
             </div>
 
             <button
@@ -107,4 +164,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default LoginPage;
