@@ -12,16 +12,13 @@ dotenv.config();
 
 const app = express();
 app.use(express.json());
-const allowedOrigins = [
-  "http://localhost:5173",
-  // add deployed frontend later
-];
+
 app.use(
   cors({
     origin: (origin, callback) => {
-      // allow non-browser tools like Insomnia (no origin)
-      if (!origin) return callback(null, true);
-      if (allowedOrigins.includes(origin)) return callback(null, true);
+      if (!origin) return callback(null, true); // Insomnia/Postman
+      if (/^http:\/\/localhost:517\d$/.test(origin))
+        return callback(null, true);
       return callback(new Error("Not allowed by CORS"));
     },
     credentials: true,
