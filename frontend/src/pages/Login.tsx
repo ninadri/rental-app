@@ -15,7 +15,7 @@ const LoginPage = () => {
 
   // If already logged in, go to dashboard (avoid navigating during render)
   useEffect(() => {
-    if (user) navigate("/dashboard");
+    if (user) navigate(user.role === "admin" ? "/admin" : "/dashboard");
   }, [user, navigate]);
 
   const handleLogin = async (e: FormEvent) => {
@@ -24,8 +24,8 @@ const LoginPage = () => {
     setSubmitting(true);
 
     try {
-      await login(email, password);
-      navigate("/dashboard");
+      const loggedInUser = await login(email, password); // 👈 return user from login()
+      navigate(loggedInUser.role === "admin" ? "/admin" : "/dashboard");
     } catch (err: any) {
       console.error(err);
       const msg =
