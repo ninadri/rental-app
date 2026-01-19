@@ -5,6 +5,8 @@ import LoginPage from "./pages/Login";
 import DashboardPage from "./pages/Dashboard";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminRoute from "./pages/routes/AdminRoute";
+import AdminLayout from "./pages/admin/AdminLayout";
+import AdminMaintenancePage from "./pages/admin/AdminMaintenancePage";
 
 function App() {
   const { user, loading } = useAuth();
@@ -40,16 +42,24 @@ function App() {
           element={user ? <DashboardPage /> : <Navigate to="/login" replace />}
         />
 
+        {/* Admin routes */}
         <Route
           path="/admin"
           element={
             <AdminRoute>
-              <AdminDashboard />
+              <AdminLayout />
             </AdminRoute>
           }
-        />
+        >
+          <Route index element={<AdminDashboard />} />
+          <Route path="maintenance" element={<AdminMaintenancePage />} />
+          <Route
+            path="announcements"
+            element={<div>Announcements (next)</div>}
+          />
+          <Route path="tenants" element={<div>Tenants (next)</div>} />
+        </Route>
 
-        {/* catch-all */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>

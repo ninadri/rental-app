@@ -24,7 +24,7 @@ const LoginPage = () => {
     setSubmitting(true);
 
     try {
-      const loggedInUser = await login(email, password); // 👈 return user from login()
+      const loggedInUser = await login(email, password);
       navigate(loggedInUser.role === "admin" ? "/admin" : "/dashboard");
     } catch (err: any) {
       console.error(err);
